@@ -1,0 +1,134 @@
+<md-toolbar flex>
+  <div class="md-toolbar-tools" layout="row" layout-align="space-between center">
+    <md-button class="md-icon-button md-primary menu_button" aria-label="Menu" ng-click="main.toggle()">
+      <ng-md-icon icon="menu"></ng-md-icon>
+    </md-button>
+    <p>{{ main.title }}</p>
+    <div style="width: 40px; height: 40px;"></div>
+  </div>
+</md-toolbar>
+
+
+
+
+
+
+<md-sidenav class="md-sidenav-left" md-component-id="left">
+  <md-toolbar>
+    <h1 class="md-toolbar-tools">Settings</h1>
+  </md-toolbar>
+
+
+</md-sidenav>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div layout="column" layout-padding="10">
+
+  <form ng-submit="runTimelapse('sss')" ng-if="!railStatus.lapseInProgress">
+    <div layout="row">
+    <div flex>
+      <md-switch ng-model="timelapseVariables.bulbMode" aria-label="Switch_bulb">
+        Bulb Mode
+      </md-switch>
+    </div>
+    <div flex>
+      <md-input-container class="md-block" flex-gt-sm  ng-if="timelapseVariables.bulbMode">
+        <label>Shutter Speed</label>
+        <input ng-model="timelapseVariables.shutterSpeed"
+               required="true">
+      </md-input-container>
+    </div>
+  </div>
+
+    <div layout="row">
+      <div flex>
+        <md-input-container class="md-block" layout-align="right">
+          <label>Motor pulse (milliseconds)</label>
+          <input ng-model="timelapseVariables.motorPulse"
+                  required="true">
+        </md-input-container>
+      </div>
+      <div flex>
+        <md-input-container class="md-block" layout-align="right">
+          <label>Interval</label>
+          <input ng-model="timelapseVariables.interval"
+                 required="true">
+        </md-input-container>
+      </div>
+    </div>
+    <div layout="row" layout-align="center">
+      <div flex>
+        <md-switch ng-model="timelapseVariables.direction" aria-label="Switch_dir">
+          {{timelapseVariables.direction === true?"Forward":"Backward"}}
+        </md-switch>
+      </div>
+    </div>
+
+
+    <div layout="row" layout-align="center">
+      <div  >
+        <md-button class="md-raised md-primary" type="submit" ng-disabled="endOfRails()"><span ng-if="!endOfRails()">Start Timelapse</span><span ng-if="endOfRails()">change direction!</span></md-button>
+      </div>
+    </div>
+  </form>
+
+  <div ng-if="railStatus.lapseInProgress">
+    <div layout="row" layout-align="center">
+
+      <div flex layout-align="center" class="text-center">
+        <label>Shots</label>
+        <h1 >{{railStatus.count}} / {{shotsLeft()}}</h1>
+      </div>
+    </div>
+    <div layout="row" layout-align="center">
+      <md-progress-linear md-mode="determinate" value="{{railStatus.currentPosition/(timelapseVariables.railLength*0.1)}}"></md-progress-linear>
+    </div>
+    <div layout="row" layout-align="center">
+
+        <md-button class="md-raised md-primary" type="button" ng-click="cancelTimelapse()">Stop</md-button>
+
+    </div>
+  </div>
+
+
+
+</div>
+
+
+
+<md-toolbar class="md-theme-light">
+  <h2 class="md-toolbar-tools">
+    <span>Manual control</span>
+  </h2>
+</md-toolbar>
+<div layout="column" layout-padding="10">
+  <div layout="column" ng-if="!lapseInProgress" >
+    <md-input-container class="md-block"  >
+      <label>Rail length</label>
+      <input ng-model="timelapseVariables.railLength"
+             required="true">
+    </md-input-container>
+    <div flex layout-align="center">
+      <md-switch ng-model="railStatus.forward" ng-click="manualSlide('forward', railStatus.forward)" aria-label="Switch_forw"  ng-true-value="true" ng-false-value="false"  ng-disabled="railStatus.back">
+        Move forward
+      </md-switch>
+      <md-switch ng-model="railStatus.back" ng-click="manualSlide('back', railStatus.forward)" aria-label="Switch_back" ng-disabled="railStatus.forward">
+        Move Backward
+      </md-switch>
+    </div>
+  </div>
+  <div><md-button class="md-raised md-primary" ng-click="restoreDefaultSettings('sss')">Reset All</md-button></div>
+</div>
+
