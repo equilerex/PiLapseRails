@@ -89,11 +89,11 @@
 
       <div flex layout-align="center" class="text-center">
         <label>Shots</label>
-        <h1 >{{railStatus.count}} / {{shotsLeft()}}</h1>
+        <h1 >{{railStatus.count}} / {{timelapseVariables.shotsLeft}}</h1>
       </div>
     </div>
     <div layout="row" layout-align="center">
-      <md-progress-linear md-mode="determinate" value="{{railStatus.currentPosition/(timelapseVariables.railLength*0.1)}}"></md-progress-linear>
+      <md-progress-linear md-mode="determinate" value="{{loadBar()}}"></md-progress-linear>
     </div>
     <div layout="row" layout-align="center">
 
@@ -129,6 +129,6 @@
       </md-switch>
     </div>
   </div>
-  <div><md-button class="md-raised md-primary" ng-click="restoreDefaultSettings('sss')">Reset All</md-button></div>
+  <div><md-button class="md-raised md-primary" ng-click="restoreDefaultSettings()">Reset All</md-button></div>
 </div>
 

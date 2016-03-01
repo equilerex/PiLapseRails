@@ -9,7 +9,7 @@ var express = require('express')
     , io = require('socket.io').listen(server)
     , spawn = require('child_process').spawn
     //pin accesss
-    , gpio = require("pi-gpio")
+   // , gpio = require("pi-gpio")
     //saving settings locally
     , fs = require('fs');
 
@@ -85,10 +85,10 @@ io.sockets.on('connection', function (socket) {
             plr.emit("timelapseStatus", railStatus);
         });
     });
-/*
-    //!***********************************************************
+
+    //***********************************************************
     // Dummy / demo function to test on windows, uncomment to test
-    //!***********************************************************
+    //***********************************************************
     var gpio = {
         "open": function (nr, state, func) {
             console.log("opened pin " + gpio.definitions[nr])
@@ -111,12 +111,13 @@ io.sockets.on('connection', function (socket) {
                 0:"stop"
             }
         }
-    };*/
+    };
 
     //***********************************************************
     // Running timelapse logic
     //***********************************************************
     socket.on("runTimelapse", function (conf) {
+        console.log(conf)
         //interval that doesnt include motor, shutter or focus
         var shutterDelay = conf.interval - conf.motorPulse - conf.focusLength;
 
@@ -163,9 +164,10 @@ io.sockets.on('connection', function (socket) {
             clearTimeout(shutterEvent);
             clearTimeout(engineEvent);
             clearTimeout(intetvalEvent);
-            gpio.close(pinConf.focus,    "output", function () {});
-            gpio.close(pinConf.shutter,  "output", function () {});
-            gpio.close(motorGpio,        "output", function () {});
+
+            gpio.close(pinConf.focus);
+            gpio.close(pinConf.shutter);
+            gpio.close(motorGpio);
             // if stop was in the middle of a motor run, add that in the status
             if(lastMotorStart) {
                 var motorRun = lastMotorStop - lastMotorStart;
@@ -258,7 +260,7 @@ io.sockets.on('connection', function (socket) {
         railStatus[data.direction] = data.state;
         console.log(railStatus[data.direction])
         if (!data.state) {
-            gpio.close(pinConf[data.direction], "output", function () { });
+            gpio.close(pinConf[data.direction]);
         } else  {
             gpio.open(pinConf[data.direction], "output", function () {
                 gpio.write(pinConf[data.direction], 1, function () {});

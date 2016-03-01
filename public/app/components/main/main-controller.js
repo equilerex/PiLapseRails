@@ -39,13 +39,22 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         "motorPulse":1000,
         "interval":1500,
         "direction":false, //backward
-        "railLength":10000
+        "railLength":10000,
+        "shotsLeft":0
     };
     $scope.railStatus = {}
     $scope.timelapseVariables = {};
     //check if not too close
     $scope.endOfRails = function() {
         return $scope.timelapseVariables.direction && $scope.railStatus.currentPosition >= $scope.timelapseVariables.railLength - $scope.timelapseVariables.motorPulse || !$scope.timelapseVariables.direction && $scope.railStatus.currentPosition <= $scope.timelapseVariables.motorPulse
+    };
+    $scope.loadBar = function() {
+        var calculate = ($scope.timelapseVariables.shotsLeft-$scope.railStatus.count)/($scope.timelapseVariables.shotsLeft/100)
+        if ($scope.timelapseVariables.direction) {
+            return parseInt(100 - calculate)
+        } else {
+            return parseInt(calculate)
+        }
     };
     //how many shots left
     $scope.shotsLeft =  function() {
@@ -91,6 +100,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
 
     //run the timelapse
     $scope.runTimelapse = function() {
+        $scope.timelapseVariables.shotsLeft = angular.copy($scope.shotsLeft());
         socket.emit('runTimelapse', $scope.timelapseVariables);
     };
 
@@ -105,8 +115,8 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
 
     //cancel timelapse
     $scope.restoreDefaultSettings = function() {
+        $scope.timelapseVariables = angular.copy(defaultVariables);
         socket.emit('saveSettings',defaultVariables);
-        $scope.timelapseVariables = defaultVariables;
     };
 
 
