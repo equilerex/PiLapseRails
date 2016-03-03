@@ -9,7 +9,7 @@ var express = require('express')
     , io = require('socket.io').listen(server)
     , spawn = require('child_process').spawn
     //pin accesss
-   // , gpio = require("pi-gpio")
+    , gpio = require("pi-gpio")
     //saving settings locally
     , fs = require('fs');
 
@@ -89,7 +89,7 @@ io.sockets.on('connection', function (socket) {
     //***********************************************************
     // Dummy / demo function to test on windows, uncomment to test
     //***********************************************************
-    var gpio = {
+    /*var gpio = {
         "open": function (nr, state, func) {
             console.log("opened pin " + gpio.definitions[nr])
             func()
@@ -111,7 +111,7 @@ io.sockets.on('connection', function (socket) {
                 0:"stop"
             }
         }
-    };
+    };*/
 
     //***********************************************************
     // Running timelapse logic

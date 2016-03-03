@@ -121,4 +121,4 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
 
 
 
-});
+})
