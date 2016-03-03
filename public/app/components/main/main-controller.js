@@ -1,7 +1,7 @@
 "use strict";
 
 angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry){
-
+    var devMode = false;
     //***********************************************************
     // settings slide out bar
     //***********************************************************
@@ -70,7 +70,12 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //Communicate with Raspberry runtime
     //***********************************************************
     //connect to raspberry data feed
-    var socket = io.connect('http://localhost:8080');
+    var socket = "";
+    if(devMode){
+        socket = io.connect('http://localhost:8080');
+    } else {
+        socket = io.connect('http://192.168.43.80:8080');
+    }
     //device has been connected event
     socket.on('connect', function(data){
         socket.emit('pageLoaded');

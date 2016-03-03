@@ -1,9 +1,9 @@
 "use strict";
 
-angular.module("ngapp", [ "ngTouch", "ui.router", "ngMdIcons", "ngMaterial", "ngCordova", "ngStorage" ])
+angular.module("ngapp", [ "ngTouch", "ui.router", "ngMdIcons", "ngMaterial", "ngStorage" ])
 // ngTouch is No Longer Supported by Angular-Material
 
-.run(function($rootScope, $cordovaDevice, $cordovaStatusbar){
+.run(function($rootScope){
   document.addEventListener("deviceready", function () {
     $cordovaStatusbar.overlaysWebView(false); // Always Show Status Bar
     $cordovaStatusbar.styleHex('#E53935'); // Status Bar With Red Color, Using Angular-Material Style
