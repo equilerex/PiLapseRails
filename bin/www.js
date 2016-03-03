@@ -1,7 +1,40 @@
+var windowsDevEnvironment = false
+
+//***********************************************************
+// Dummy / demo function to test on windows, uncomment to test
+//***********************************************************
+var gpio = {
+    "open": function (nr, state, func) {
+        console.log("opened pin " + gpio.definitions[nr])
+        func()
+    },
+    "close": function (nr, state, func) {
+        console.log("stop " + gpio.definitions[nr])
+    },
+    "write": function (nr, state, func) {
+        console.log(gpio.definitions.state[state]+" "+gpio.definitions[nr])
+        func()
+    },
+    "definitions": {
+        11: "focus",
+        12: "shutter",
+        15: "motor forward",
+        16: "motor back",
+        "state":{
+            1:"start",
+            0:"stop"
+        }
+    }
+};
+if(!windowsDevEnvironment) {
+    var gpio = require("pi-gpio")
+}
+
+
+
 //***********************************************************
 // node setup
 //***********************************************************
-
 var express = require('express')
     , app = express()
     , server = require('http').createServer(app)
@@ -12,11 +45,7 @@ var express = require('express')
     //pin accesss
     //saving settings locally
     , fs = require('fs');
-//devmode to be used on windows
-var devMode = false
-if(!devMode) {
-    var gpio = require("pi-gpio")
-}
+
 app.set('port', process.env.TEST_PORT || 8080);
 //set default route
 app.get('/', function (req, res) {
@@ -89,35 +118,6 @@ io.sockets.on('connection', function (socket) {
             plr.emit("timelapseStatus", railStatus);
         });
     });
-
-    //***********************************************************
-    // Dummy / demo function to test on windows, uncomment to test
-    //***********************************************************
-    if(devMode) {
-         var gpio = {
-            "open": function (nr, state, func) {
-                console.log("opened pin " + gpio.definitions[nr])
-                func()
-            },
-            "close": function (nr, state, func) {
-                console.log("stop " + gpio.definitions[nr])
-            },
-            "write": function (nr, state, func) {
-                console.log(gpio.definitions.state[state]+" "+gpio.definitions[nr])
-                func()
-            },
-            "definitions": {
-                11: "focus",
-                12: "shutter",
-                15: "motor forward",
-                16: "motor back",
-                "state":{
-                    1:"start",
-                    0:"stop"
-                }
-            }
-        };
-    }
 
     //***********************************************************
     // Running timelapse logic
