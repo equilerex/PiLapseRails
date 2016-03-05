@@ -1,10 +1,58 @@
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local("Material Icons"), local("MaterialIcons-Regular"), url("iconfont.woff2") format("woff2"); }
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased; }
+
 .menu_button ng-md-icon {
   color: #ffffff; }
 
-md-input-container {
+.no_bottom_margin {
   margin-bottom: 0px; }
 
 .md-errors-spacer {
   display: none; }
+
+.width_100 {
+  width: 100%; }
+
+.no_margin {
+  margin: 0px; }
+
+.no_padding {
+  padding: 0px; }
+
+.black_background {
+  background-color: #333333 !important;
+  height: 52px; }
+
+.icon {
+  margin-right: 5px;
+  font-size: 20px;
+  color: #FFFFFF; }
+
+.main_counter {
+  text-align: center;
+  padding-top: 10px;
+  margin-top: 10px; }
+  .main_counter:nth-child(2) {
+    border: 2px solid #ccc;
+    border-width: 0px 2px; }
+  .main_counter h1 {
+    font-size: 20px; }
 
 /*# sourceMappingURL=style.css.map */

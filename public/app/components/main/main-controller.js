@@ -1,7 +1,7 @@
 "use strict";
 
 angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry, $timeout){
-    var windowsDevEnvironment = false;
+    var windowsDevEnvironment = true;
     //***********************************************************
     // settings slide out bar
     //***********************************************************
@@ -30,40 +30,80 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //***********************************************************
     // Available settings
     //***********************************************************
-    var defaultVariables = {
-        "dedicatedShutter":true,
+    $scope.defaultLapseConf = {
         "bulbMode":false,
         "shutterSpeed":300,
         "focusLength":0,
-        "focusEnabled":true,
         "motorPulse":1000,
-        "interval":1500,
+        "waitLength":500,
         "direction":false, //backward
-        "railLength":10000,
-        "shotsLeft":0
+        "loop":false
     };
-    $scope.railStatus = {}
-    $scope.timelapseVariables = {};
-    //check if not too close
+    $scope.defaultRailConf = {
+        "focusEnabled":false,
+        "railLength":10000
+    };
+    $scope.railStatus = {
+        "shotsLeft":0,
+        "timeLeft":0,
+        "interval":0
+    };
+    $scope.lapseConf = {};
+    $scope.railConf = {};
+
+    //check if not too close to end of rails
     $scope.endOfRails = function() {
-        return $scope.timelapseVariables.direction && $scope.railStatus.currentPosition >= $scope.timelapseVariables.railLength - $scope.timelapseVariables.motorPulse || !$scope.timelapseVariables.direction && $scope.railStatus.currentPosition <= $scope.timelapseVariables.motorPulse
+        return $scope.lapseConf.direction && $scope.railStatus.currentPosition >= $scope.railConf.railLength - $scope.lapseConf.motorPulse || !$scope.lapseConf.direction && $scope.railStatus.currentPosition <= $scope.lapseConf.motorPulse
     };
+
+
+    //***********************************************************
+    // progress / calculation feedback
+    //***********************************************************
     $scope.loadBar = function() {
-        var calculate = ($scope.timelapseVariables.shotsLeft-$scope.railStatus.count)/($scope.timelapseVariables.shotsLeft/100)
-        if ($scope.timelapseVariables.direction) {
+        var calculate = ($scope.railStatus.shotsLeft-$scope.railStatus.count)/($scope.railStatus.shotsLeft/100)
+        if ($scope.lapseConf.direction) {
             return parseInt(100 - calculate)
         } else {
             return parseInt(calculate)
         }
     };
-    //how many shots left
     $scope.shotsLeft =  function() {
-        console.log($scope.railStatus)
-       if ($scope.timelapseVariables.direction) {
-           return  parseInt(($scope.timelapseVariables.railLength-$scope.railStatus.currentPosition)/$scope.timelapseVariables.motorPulse)
-       } else {
-           return  parseInt($scope.railStatus.currentPosition/$scope.timelapseVariables.motorPulse)
-       }
+        if ($scope.lapseConf.direction) {
+            return  parseInt(($scope.railConf.railLength-$scope.railStatus.currentPosition)/$scope.lapseConf.motorPulse)
+        } else {
+            return  parseInt($scope.railStatus.currentPosition/$scope.lapseConf.motorPulse)
+        }
+    };
+    $scope.timeLeft =  function() {
+        console.log($scope.railStatus.currentPosition)
+        var time = 0
+        if ($scope.lapseConf.direction) {
+            time = moment.duration($scope.railConf.railLength-$scope.railStatus.currentPosition, "S")
+        } else {
+            time = moment.duration($scope.railStatus.currentPosition, "S")
+        }
+        return  moment(time._data).format("hh:mm:ss")
+    };
+    $scope.intervalNumber =  function() {
+        var interval = 0;
+        if($scope.railConf.focusEnabled) {
+            interval += parseInt($scope.lapseConf.focusLength)
+        }
+        if($scope.lapseConf.bulbMode) {
+            interval += parseInt($scope.lapseConf.shutterSpeed)
+        }
+        interval += parseInt($scope.lapseConf.motorPulse);
+        interval += parseInt($scope.lapseConf.waitLength);
+        console.log(interval)
+        interval = moment.duration(interval);
+        return  moment(interval._data).format("mm:ss:SS");
+
+    };
+    $scope.updateEstimate = function(){
+        $scope.railStatus.shotsLeft = $scope.shotsLeft();
+        $scope.railStatus.timeLeft = $scope.timeLeft();
+        $scope.railStatus.interval =  $scope.intervalNumber()
     };
 
     //***********************************************************
@@ -83,14 +123,19 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     socket.on('connectionEstablished', function(data){
         //use saved data
         $scope.$apply(function() {
-            if (data.timelapseVariables) {
-                console.log("saved")
-                $scope.timelapseVariables = JSON.parse(data.timelapseVariables);
+            if (data.railConf) {
+                $scope.railConf = JSON.parse(data.railConf);
                 //use default
             } else {
-                console.log("defa")
-                $scope.timelapseVariables = defaultVariables
+                $scope.railConf = $scope.defaultRailConf
             }
+            if (data.lapseConf) {
+                $scope.lapseConf = JSON.parse(data.lapseConf);
+                //use default
+            } else {
+                $scope.lapseConf = $scope.defaultLapseConf
+            }
+            $timeout(function(){$scope.updateEstimate()},300)
         });
 
     });
@@ -99,64 +144,29 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //active timelapse feedback info
     socket.on('timelapseStatus', function (data) {
         $scope.$apply(function() {
-            $scope.railStatus = data
+            $scope.railStatus = data;
+            $scope.updateEstimate()
         });
     });
 
     //run the timelapse
     $scope.runTimelapse = function() {
-        $scope.timelapseVariables.shotsLeft = angular.copy($scope.shotsLeft());
-        socket.emit('runTimelapse', $scope.timelapseVariables);
+        $scope.railStatus.shotsLeft = angular.copy($scope.shotsLeft());
+        socket.emit('runTimelapse', {"lapseConf":$scope.lapseConf,"railConf":$scope.railConf});
     };
 
     //cancel timelapse
     $scope.cancelTimelapse = function(source) {
-        socket.emit('cancelTimelapse',{source:source});
+        socket.emit('cancelTimelapse', {"lapseConf":$scope.lapseConf,"railConf":$scope.railConf});
     };
 
-
-
-    //cancel timelapse
-    $scope.restoreDefaultSettings = function() {
-        $scope.timelapseVariables = angular.copy(defaultVariables);
-        socket.emit('saveSettings',defaultVariables);
-    };
-
-    $scope.stopWatch = 0;
-    $scope.resetStopWatch = function() {
-        $scope.stopWatch = 0;
-    }
-
-    var timer = null;
-    $scope.stopWatch = 0;
-    $scope.manualDirection = false;
-
-    var stopStopWatch = function() {
-        $timeout.cancel(timer);
-        timer = null;
-    };
-
-    var updateStopWatch = function(direction) {
-            if( $scope.manualDirection==="forward") {
-                $scope.stopWatch += 10;
-            } else {
-                $scope.stopWatch -= 10;
-            }
-
-        timer = $timeout(updateStopWatch, 10);
-    };
+    //manual move
     $scope.manualSlide = function(direction, state) {
         console.log(direction, state)
-        if(!state) {
-            if (timer === null) {
-                $scope.manualDirection = direction;
-                updateStopWatch(direction);
-            }
-        } else {
-            $scope.manualDirection = false;
-            stopStopWatch();
-        }
         socket.emit('manualSlide',{direction:direction, state:!state});
     };
-
-})
+    //save settings
+    $scope.saveSettings = function(file, data) {
+        socket.emit('saveSettings',{"file":file,"data":data});
+    }
+});
