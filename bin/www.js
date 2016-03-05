@@ -129,7 +129,8 @@ io.sockets.on('connection', function (socket) {
     //open pins for business
     gpio.open(pinConf.focus,    "output", function () {});
     gpio.open(pinConf.shutter,  "output", function () {});
-    gpio.open(motorGpio,        "output", function () {});
+    gpio.open(pinConf.forward,  "output", function () {});
+    gpio.open(pinConf.back,     "output", function () {}); 
 
     //***********************************************************
     // Running timelapse logic
