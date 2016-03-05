@@ -149,7 +149,7 @@ io.sockets.on('connection', function (socket) {
     //***********************************************************
     // Running timelapse logic
     //***********************************************************
-    socket.on("runTimelapse", function (conf) { 
+    socket.on("runTimelapse", function (conf) {
         //interval that doesnt include motor, shutter or focus
         var shutterDelay = conf.interval - conf.motorPulse - conf.focusLength;
 
@@ -290,10 +290,8 @@ io.sockets.on('connection', function (socket) {
         gpio.write(pinConf.forward, 0, function () {});
         gpio.write(pinConf.back, 0, function () {});
         //start motor if needed
-        if (data.state) {
-            gpio.open(pinConf[data.direction], "output", function () {
-                gpio.write(pinConf[data.direction], 1, function () {});
-            });
+        if (data.state) { 
+            gpio.write(pinConf[data.direction], 1, function () {});
         }
     });
 
