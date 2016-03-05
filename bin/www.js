@@ -149,8 +149,7 @@ io.sockets.on('connection', function (socket) {
     //***********************************************************
     // Running timelapse logic
     //***********************************************************
-    socket.on("runTimelapse", function (conf) {
-        clearPins()
+    socket.on("runTimelapse", function (conf) { 
         //interval that doesnt include motor, shutter or focus
         var shutterDelay = conf.interval - conf.motorPulse - conf.focusLength;
 
