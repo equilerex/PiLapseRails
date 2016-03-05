@@ -1,7 +1,7 @@
 "use strict";
 
 angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry, $timeout){
-    var windowsDevEnvironment = true;
+    var windowsDevEnvironment = false;
     //***********************************************************
     // settings slide out bar
     //***********************************************************

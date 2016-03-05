@@ -1,4 +1,4 @@
-var windowsDevEnvironment = true
+var windowsDevEnvironment = false
 
 //***********************************************************
 // Dummy / demo function to test on windows, uncomment to test
