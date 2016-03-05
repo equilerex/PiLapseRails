@@ -121,12 +121,15 @@ io.sockets.on('connection', function (socket) {
     //***********************************************************
     // Clean up pin states (ensure there is no conflicts)
     //***********************************************************
-    var clearPins = function() {
-        gpio.close(pinConf.focus);
-        gpio.close(pinConf.shutter);
-        gpio.close(pinConf.forward);
-        gpio.close(pinConf.back);
-    }
+    gpio.close(pinConf.focus);
+    gpio.close(pinConf.shutter);
+    gpio.close(pinConf.forward);
+    gpio.close(pinConf.back);
+
+    //open pins for business
+    gpio.open(pinConf.focus,    "output", function () {});
+    gpio.open(pinConf.shutter,  "output", function () {});
+    gpio.open(motorGpio,        "output", function () {});
 
     //***********************************************************
     // Running timelapse logic
@@ -163,10 +166,6 @@ io.sockets.on('connection', function (socket) {
         var lastMotorStart;
         var lastMotorStop;
 
-        //open pins for business
-        gpio.open(pinConf.focus,    "output", function () {});
-        gpio.open(pinConf.shutter,  "output", function () {});
-        gpio.open(motorGpio,        "output", function () {});
         //set timeout values
         var focusEvent
             ,shutterEvent
@@ -180,9 +179,12 @@ io.sockets.on('connection', function (socket) {
             clearTimeout(engineEvent);
             clearTimeout(intetvalEvent);
 
-            gpio.close(pinConf.focus);
-            gpio.close(pinConf.shutter);
-            gpio.close(motorGpio);
+            gpio.write(pinConf.shutter, 0, function () {});
+            gpio.write(pinConf.focus, 0, function () {});
+            gpio.write(pinConf.forward, 0, function () {});
+            gpio.write(pinConf.back, 0, function () {});
+
+
             // if stop was in the middle of a motor run, add that in the status
             if(lastMotorStart) {
                 var motorRun = lastMotorStop - lastMotorStart;
@@ -270,7 +272,10 @@ io.sockets.on('connection', function (socket) {
     // manual rail slide
     //***********************************************************
     socket.on("manualSlide", function (data) {
-        clearPins();
+        //clear states
+        gpio.write(pinConf.forward, 0, function () {});
+        gpio.write(pinConf.back, 0, function () {});
+        //start motor if needed
         if (data.state) {
             gpio.open(pinConf[data.direction], "output", function () {
                 gpio.write(pinConf[data.direction], 1, function () {});
