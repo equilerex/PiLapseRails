@@ -120,17 +120,12 @@ io.sockets.on('connection', function (socket) {
     });
     //***********************************************************
     // Clean up pin states (ensure there is no conflicts)
-    //***********************************************************
-    gpio.close(pinConf.focus);
-    gpio.close(pinConf.shutter);
-    gpio.close(pinConf.forward);
-    gpio.close(pinConf.back);
-
+    //***********************************************************  
     //open pins for business
     gpio.open(pinConf.focus,    "output", function () {});
     gpio.open(pinConf.shutter,  "output", function () {});
     gpio.open(pinConf.forward,  "output", function () {});
-    gpio.open(pinConf.back,     "output", function () {}); 
+    gpio.open(pinConf.back,     "output", function () {});
 
     //***********************************************************
     // Running timelapse logic
