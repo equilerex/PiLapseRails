@@ -17,7 +17,47 @@
   <md-toolbar>
     <h1 class="md-toolbar-tools">Settings</h1>
   </md-toolbar>
+  <div layout="column" layout-padding="10">
+    <md-input-container class="md-block"  >
+      <label>Rail length</label>
+      <input ng-model="timelapseVariables.railLength"
+             required="true">
+    </md-input-container>
+    <div><md-button class="md-raised md-primary" ng-click="restoreDefaultSettings()">Reset all settings</md-button></div>
+  </div>
+  <md-toolbar class="md-theme-light">
+    <h2 class="md-toolbar-tools">
+      <span>manual control</span>
+    </h2>
+  </md-toolbar>
 
+
+  <div layout="column" layout-padding="10">
+    <div layout="column" ng-if="!lapseInProgress" >
+
+      <div flex layout-align="center">
+        <md-switch ng-model="railStatus.forward" ng-click="manualSlide('forward', railStatus.forward)" aria-label="Switch_forw"  ng-true-value="true" ng-false-value="false"  ng-disabled="railStatus.back">
+          Move forward
+        </md-switch>
+        <md-switch ng-model="railStatus.back" ng-click="manualSlide('back', railStatus.back)" aria-label="Switch_back" ng-disabled="railStatus.forward">
+          Move Backward
+        </md-switch>
+      </div>
+      <div layout="row" >
+        <div class="flex">
+         <h4>{{stopWatch}}</h4>
+        </div>
+        <div class="flex">
+          <md-button class="md-raised md-primary"
+                     type="button"
+                     ng-click="resetStopWatch()"
+                     ng-disabled="manualDirection"
+                     ng-if="stopWatch>0">Reset</md-button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
 </md-sidenav>
 
@@ -108,38 +148,4 @@
 
 
 
-<md-toolbar class="md-theme-light">
-  <h2 class="md-toolbar-tools">
-    <span>Manual control</span>
-  </h2>
-</md-toolbar>
-
-
-<div layout="column" layout-padding="10">
-  <div layout="column" ng-if="!lapseInProgress" >
-    <md-input-container class="md-block"  >
-      <label>Rail length</label>
-      <input ng-model="timelapseVariables.railLength"
-             required="true">
-    </md-input-container>
-
-    <div layout="row" layout-padding="10">
-      <div class="flex">
-        <md-button class="md-raised md-primary" type="button" ng-click="resetStopWatch()">Reset stopwatch</md-button></div>
-      <div class="flex">
-        {{counter}}
-      </div>
-    </div>
-
-    <div flex layout-align="center">
-      <md-switch ng-model="railStatus.forward" ng-click="manualSlide('forward', railStatus.forward)" aria-label="Switch_forw"  ng-true-value="true" ng-false-value="false"  ng-disabled="railStatus.back">
-        Move forward
-      </md-switch>
-      <md-switch ng-model="railStatus.back" ng-click="manualSlide('back', railStatus.forward)" aria-label="Switch_back" ng-disabled="railStatus.forward">
-        Move Backward
-      </md-switch>
-    </div>
-  </div>
-  <div><md-button class="md-raised md-primary" ng-click="restoreDefaultSettings()">Reset All</md-button></div>
-</div>
 

@@ -118,12 +118,21 @@ io.sockets.on('connection', function (socket) {
             plr.emit("timelapseStatus", railStatus);
         });
     });
+    //***********************************************************
+    // Clean up pin states (ensure there is no conflicts)
+    //***********************************************************
+    var clearPins = function() {
+        gpio.close(pinConf.focus);
+        gpio.close(pinConf.shutter);
+        gpio.close(pinConf.forward);
+        gpio.close(pinConf.back);
+    }
 
     //***********************************************************
     // Running timelapse logic
     //***********************************************************
     socket.on("runTimelapse", function (conf) {
-        console.log(conf)
+        clearPins()
         //interval that doesnt include motor, shutter or focus
         var shutterDelay = conf.interval - conf.motorPulse - conf.focusLength;
 
@@ -261,13 +270,8 @@ io.sockets.on('connection', function (socket) {
     // manual rail slide
     //***********************************************************
     socket.on("manualSlide", function (data) {
-        console.log(data)
-        console.log(railStatus[data.direction])
-        railStatus[data.direction] = data.state;
-        console.log(railStatus[data.direction])
-        if (!data.state) {
-            gpio.close(pinConf[data.direction]);
-        } else  {
+        clearPins();
+        if (data.state) {
             gpio.open(pinConf[data.direction], "output", function () {
                 gpio.write(pinConf[data.direction], 1, function () {});
             });

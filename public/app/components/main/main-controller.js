@@ -127,34 +127,34 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         $scope.stopWatch = 0;
     }
 
-
     var timer = null;
-    $scope.counter = 0;
-    $scope.manualDirection = false
-    var stopCounter = function() {
+    $scope.stopWatch = 0;
+    $scope.manualDirection = false;
+
+    var stopStopWatch = function() {
         $timeout.cancel(timer);
         timer = null;
     };
 
-    var updateCounter = function(direction) {
+    var updateStopWatch = function(direction) {
             if( $scope.manualDirection==="forward") {
-                $scope.counter += 100;
+                $scope.stopWatch += 10;
             } else {
-                $scope.counter -= 100;
+                $scope.stopWatch -= 10;
             }
 
-        timer = $timeout(updateCounter, 100);
+        timer = $timeout(updateStopWatch, 10);
     };
     $scope.manualSlide = function(direction, state) {
         console.log(direction, state)
         if(!state) {
             if (timer === null) {
                 $scope.manualDirection = direction;
-                updateCounter(direction);
+                updateStopWatch(direction);
             }
         } else {
             $scope.manualDirection = false;
-            stopCounter();
+            stopStopWatch();
         }
         socket.emit('manualSlide',{direction:direction, state:!state});
     };
