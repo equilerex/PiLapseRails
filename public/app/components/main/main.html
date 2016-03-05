@@ -113,6 +113,8 @@
     <span>Manual control</span>
   </h2>
 </md-toolbar>
+
+
 <div layout="column" layout-padding="10">
   <div layout="column" ng-if="!lapseInProgress" >
     <md-input-container class="md-block"  >
@@ -120,6 +122,15 @@
       <input ng-model="timelapseVariables.railLength"
              required="true">
     </md-input-container>
+
+    <div layout="row" layout-padding="10">
+      <div class="flex">
+        <md-button class="md-raised md-primary" type="button" ng-click="resetStopWatch()">Reset stopwatch</md-button></div>
+      <div class="flex">
+        {{counter}}
+      </div>
+    </div>
+
     <div flex layout-align="center">
       <md-switch ng-model="railStatus.forward" ng-click="manualSlide('forward', railStatus.forward)" aria-label="Switch_forw"  ng-true-value="true" ng-false-value="false"  ng-disabled="railStatus.back">
         Move forward

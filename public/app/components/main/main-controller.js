@@ -1,6 +1,6 @@
 "use strict";
 
-angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry){
+angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry, $timeout){
     var windowsDevEnvironment = false;
     //***********************************************************
     // settings slide out bar
@@ -114,9 +114,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         socket.emit('cancelTimelapse',{source:source});
     };
 
-    $scope.manualSlide = function(direction, state) {
-        socket.emit('manualSlide',{direction:direction, state:!state});
-    };
+
 
     //cancel timelapse
     $scope.restoreDefaultSettings = function() {
@@ -124,6 +122,41 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         socket.emit('saveSettings',defaultVariables);
     };
 
+    $scope.stopWatch = 0;
+    $scope.resetStopWatch = function() {
+        $scope.stopWatch = 0;
+    }
 
+
+    var timer = null;
+    $scope.counter = 0;
+    $scope.manualDirection = false
+    var stopCounter = function() {
+        $timeout.cancel(timer);
+        timer = null;
+    };
+
+    var updateCounter = function(direction) {
+            if( $scope.manualDirection==="forward") {
+                $scope.counter += 100;
+            } else {
+                $scope.counter -= 100;
+            }
+
+        timer = $timeout(updateCounter, 100);
+    };
+    $scope.manualSlide = function(direction, state) {
+        console.log(direction, state)
+        if(!state) {
+            if (timer === null) {
+                $scope.manualDirection = direction;
+                updateCounter(direction);
+            }
+        } else {
+            $scope.manualDirection = false;
+            stopCounter();
+        }
+        socket.emit('manualSlide',{direction:direction, state:!state});
+    };
 
 })
