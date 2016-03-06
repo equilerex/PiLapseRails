@@ -10,7 +10,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //***********************************************************
     // dev mode... set true in www.js and main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
     //***********************************************************
-    var windowsDevEnvironment = true; //set true in()
+    var windowsDevEnvironment = false; //set true in()
 
     //***********************************************************
     // settings slide out bar
