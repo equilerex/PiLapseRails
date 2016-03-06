@@ -10,7 +10,7 @@
 //***********************************************************
 // dev mode... set true in www.js and main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
 //***********************************************************
-var windowsDevEnvironment = false;
+var windowsDevEnvironment = true;
 
 //***********************************************************
 // Dummy / demo function to test on windows, uncomment to test
@@ -195,7 +195,8 @@ var runTimeLapse = function(data) {
     selectMotorPin();
 
     //save new settings locally
-    fs.writeFile('public/lapseconf.json', JSON.stringify(data.lapseConf), "utf8", function () {
+    fs.writeFile('public/lapseconf.json', JSON.stringify(data.lapseConf), "utf8", function (err) {
+        console.log(err)
     });
 
 
@@ -334,7 +335,9 @@ io.sockets.on('connection', function (socket) {
         plr = socket;
         //If there are saved values from last session, send them to frontend
         fs.readFile('public/railconf.json', 'utf8', function (err, savedRailconf) {
+            console.log(err)
             fs.readFile('public/lapseconf.json', 'utf8', function (err2, savedLapseconf) {
+                console.log(err)
                 var data = {
                     "lapseConf":false,
                     "railConf":false
@@ -357,7 +360,8 @@ io.sockets.on('connection', function (socket) {
 
     //saving shot settings call
     socket.on("saveSettings", function (data) {
-        fs.writeFile('public/'+data.file+'.json', JSON.stringify(data.data), "utf8", function () {
+        fs.writeFile('public/'+data.file+'.json', JSON.stringify(data.data), "utf8", function (err) {
+            console.log(err)
             if(data.file === "railconf") {
                 plr.emit("settingsSaved", data);
             }
@@ -382,8 +386,25 @@ io.sockets.on('connection', function (socket) {
 
     //shut down
     socket.on("shutOffPi", function (data) {
+        $scope.poweredOff = true;
         exec("sudo shutdown -h now", function (error, stdout, stderr) {
             return;
+        });
+    });
+
+    //test shot
+    socket.on("testShot", function (data) {
+        gpio.write(pinConf.focus, 1, function () {
+            focusEvent = setTimeout(function () {
+                //trigger shutter & wait for shutter speed if any
+                gpio.write(pinConf.shutter, 1, function () {
+                    shutterEvent = setTimeout(function () {
+                        //release shutter / focus
+                        gpio.write(pinConf.shutter, 0, function () {});
+                        gpio.write(pinConf.focus, 0, function () {});
+                    }, data.lapseConf.shutterSpeed)
+                })
+            }, data.lapseConf.focusLength)
         });
     });
 
