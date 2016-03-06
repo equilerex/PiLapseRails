@@ -28,7 +28,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
 
     //***********************************************************
-    // Available settings
+    // Available settings / default values
     //***********************************************************
     $scope.defaultLapseConf = {
         "bulbMode":false,
@@ -37,11 +37,12 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         "motorPulse":1000,
         "waitLength":500,
         "direction":false, //backward
-        "loop":false
+        "loopEnabled":false,
+        "loopCount":false
     };
     $scope.defaultRailConf = {
         "focusEnabled":false,
-        "railLength":10000
+        "railLength":false
     };
     $scope.railStatus = {
         "shotsLeft":0,
@@ -51,15 +52,16 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     $scope.lapseConf = {};
     $scope.railConf = {};
 
-    //check if not too close to end of rails
-    $scope.endOfRails = function() {
-        return $scope.lapseConf.direction && $scope.railStatus.currentPosition >= $scope.railConf.railLength - $scope.lapseConf.motorPulse || !$scope.lapseConf.direction && $scope.railStatus.currentPosition <= $scope.lapseConf.motorPulse
-    };
 
 
     //***********************************************************
     // progress / calculation feedback
     //***********************************************************
+    //check if not too close to end of rails
+    $scope.endOfRails = function() {
+        return $scope.lapseConf.direction && $scope.railStatus.currentPosition >= $scope.railConf.railLength - $scope.lapseConf.motorPulse || !$scope.lapseConf.direction && $scope.railStatus.currentPosition <= $scope.lapseConf.motorPulse
+    };
+    //progress bar
     $scope.loadBar = function() {
         var calculate = ($scope.railStatus.shotsLeft-$scope.railStatus.count)/($scope.railStatus.shotsLeft/100)
         if ($scope.lapseConf.direction) {
@@ -68,23 +70,31 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
             return parseInt(calculate)
         }
     };
+    //shots calculation
     $scope.shotsLeft =  function() {
-        if ($scope.lapseConf.direction) {
-            return  parseInt(($scope.railConf.railLength-$scope.railStatus.currentPosition)/$scope.lapseConf.motorPulse)
+        var loopAddon = 0;
+        var count = 0;
+        if( $scope.railStatus.loopCount) {
+            count = $scope.railStatus.loopCount
         } else {
-            return  parseInt($scope.railStatus.currentPosition/$scope.lapseConf.motorPulse)
+            count = $scope.lapseConf.loopCount
+        }
+        if($scope.lapseConf.loopEnabled && count>0) {
+            loopAddon = $scope.railConf.railLength*count;
+        }
+        console.log(loopAddon,  count)
+        if($scope.lapseConf.direction) {
+            return  parseInt((($scope.railConf.railLength-$scope.railStatus.currentPosition+loopAddon)/$scope.lapseConf.motorPulse))
+        } else {
+            return  parseInt(($scope.railStatus.currentPosition+loopAddon)/$scope.lapseConf.motorPulse)
         }
     };
+    //remaining time calculation
     $scope.timeLeft =  function() {
-        console.log($scope.railStatus.currentPosition)
-        var time = 0
-        if ($scope.lapseConf.direction) {
-            time = moment.duration($scope.railConf.railLength-$scope.railStatus.currentPosition, "S")
-        } else {
-            time = moment.duration($scope.railStatus.currentPosition, "S")
-        }
-        return  moment(time._data).format("hh:mm:ss")
+        var timeLeft =  moment.duration($scope.intervalNumber()*$scope.shotsLeft())
+        return  moment(timeLeft._data).format("mm:ss:SS")
     };
+    //interval calculation
     $scope.intervalNumber =  function() {
         var interval = 0;
         if($scope.railConf.focusEnabled) {
@@ -95,15 +105,21 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         }
         interval += parseInt($scope.lapseConf.motorPulse);
         interval += parseInt($scope.lapseConf.waitLength);
-        console.log(interval)
-        interval = moment.duration(interval);
-        return  moment(interval._data).format("mm:ss:SS");
+        return  interval
 
     };
+    //update all calculations
     $scope.updateEstimate = function(){
-        $scope.railStatus.shotsLeft = $scope.shotsLeft();
+        var multiply = 0;
+        if($scope.railConf.loopEnabled) {
+            multiply = $scope.railConf.loopCount
+        }
+        if(!$scope.railStatus.lapseInProgress) {
+            $scope.railStatus.shotsLeft = $scope.shotsLeft();
+        }
         $scope.railStatus.timeLeft = $scope.timeLeft();
-        $scope.railStatus.interval =  $scope.intervalNumber()
+        var intervalNumber = moment.duration($scope.intervalNumber());
+        $scope.railStatus.interval =  moment(intervalNumber._data).format("mm:ss:SS");
     };
 
     //***********************************************************
@@ -120,6 +136,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     socket.on('connect', function(data){
         socket.emit('pageLoaded');
     });
+    //fetch saved data upon loading
     socket.on('connectionEstablished', function(data){
         //use saved data
         $scope.$apply(function() {
@@ -139,8 +156,6 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         });
 
     });
-
-
     //active timelapse feedback info
     socket.on('timelapseStatus', function (data) {
         $scope.$apply(function() {
@@ -151,8 +166,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
 
     //run the timelapse
     $scope.runTimelapse = function() {
-        $scope.railStatus.shotsLeft = angular.copy($scope.shotsLeft());
-        socket.emit('runTimelapse', {"lapseConf":$scope.lapseConf,"railConf":$scope.railConf});
+        socket.emit('runTimelapse', {"lapseConf":$scope.lapseConf,"railConf":$scope.railConf, "railStatus":$scope.railStatus});
     };
 
     //cancel timelapse
@@ -162,9 +176,23 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
 
     //manual move
     $scope.manualSlide = function(direction, state) {
-        console.log(direction, state)
         socket.emit('manualSlide',{direction:direction, state:!state});
     };
+    //reset RailConf
+    $scope.resetRailConf = function(file, data) {
+        $scope.railConf = angular.copy($scope.defaultRailConf)
+        socket.emit('saveSettings',{"file":"railconf","data":$scope.defaultRailConf});
+    };
+    //reset lapseConf
+    $scope.resetLapseConf = function(file, data) {
+        $scope.lapseConf = angular.copy($scope.defaultLapseConf)
+        socket.emit('saveSettings',{"file":"railconf","data":$scope.defaultLapseConf});
+    };
+    $scope.resetCurrentPosition = function() {
+        $scope.railStatus.currentPosition = 0;
+        socket.emit('resetPosition', $scope.railStatus);
+    };
+
     //save settings
     $scope.saveSettings = function(file, data) {
         socket.emit('saveSettings',{"file":file,"data":data});

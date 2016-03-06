@@ -33,6 +33,10 @@
 .no_margin {
   margin: 0px; }
 
+.no_horizontal_margin {
+  margin-left: 0px;
+  margin-right: 0px; }
+
 .no_padding {
   padding: 0px; }
 

@@ -1,1 +1,1 @@
-{"bulbMode":false,"shutterSpeed":300,"focusLength":0,"motorPulse":1000,"waitLength":500,"direction":false,"loop":false}
+{"bulbMode":true,"shutterSpeed":100,"focusLength":0,"motorPulse":500,"waitLength":200,"direction":true,"loop":false,"loopEnabled":false,"loopCount":3}

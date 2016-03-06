@@ -162,24 +162,25 @@ var focusEvent
 var lastMotorStart;
 var lastMotorStop;
 var runTimeLapse = function(data) {
-
+    //shots left is static per session
+    railStatus.shotsLeft = data.railStatus.shotsLeft;
+    //make a local copy
+    railStatus.loopCount = data.lapseConf.loopCount;
     //select right gpio pin for motor direction
     var motorGpio = pinConf.forward;
-    if (!data.lapseConf.direction) {
-        motorGpio = pinConf.back;
-    }
+    var selectMotorPin = function(){
+        if (!data.lapseConf.direction) {
+            motorGpio = pinConf.back;
+        } else {
+            motorGpio = pinConf.forward
+        }
+    };
+    selectMotorPin();
 
     //save new settings locally
     fs.writeFile('public/lapseconf.json', JSON.stringify(data.lapseConf), "utf8", function () {
     });
 
-    //handle focus pin (needed or not?)
-    var focusState = 0;
-    if (data.lapseConf.focusEnabled) {
-        focusState = 1
-    } else {
-        data.lapseConf.focusLength = 0;
-    }
 
     //set shutter speed default length if bulb disabled
     if (!data.lapseConf.bulbMode) {
@@ -189,10 +190,10 @@ var runTimeLapse = function(data) {
     //single shot cycle
     var shutterCycle = function () {
         //trigger focus & wait for focus length
-        gpio.write(pinConf.focus, focusState, function () {
+        gpio.write(pinConf.focus, 1, function () {
             focusEvent = setTimeout(function () {
                 //trigger shutter & wait for shutter speed if any
-                gpio.write(pinConf.shutter, focusState, function () {
+                gpio.write(pinConf.shutter, 1, function () {
                     shutterEvent = setTimeout(function () {
                         //release shutter / focus
                         gpio.write(pinConf.shutter, 0, function () {});
@@ -225,8 +226,20 @@ var runTimeLapse = function(data) {
                                 }, data.lapseConf.motorPulse);
                             });
                         } else {
+                            //if looping, switch direction
+                            if(data.lapseConf.loopEnabled && railStatus.loopCount>0) {
+                                //count loop
+                                railStatus.loopCount -=1;
+                                //switch direction
+                                data.lapseConf.direction = !data.lapseConf.direction;
+                                //switch pins
+                                selectMotorPin();
+                                shutterCycle();
+
                             //stop if end reached
-                            stopTimelapse(data.lapseConf);
+                            } else {
+                                stopTimelapse(data.lapseConf);
+                            }
                         }
 
                     }, data.lapseConf.shutterSpeed)
@@ -301,17 +314,18 @@ io.sockets.on('connection', function (socket) {
         fs.readFile('public/railconf.json', 'utf8', function (err, savedRailconf) {
             fs.readFile('public/lapseconf.json', 'utf8', function (err2, savedLapseconf) {
                 var data = {
-                    "lapseconf":false,
+                    "lapseConf":false,
                     "railConf":false
                 };
                 if (savedLapseconf && savedLapseconf.length > 0) {
                     //pass saved config to frontend
-                    data.lapseconf = savedLapseconf;
+                    data.lapseConf = savedLapseconf;
                 }
                 if (savedRailconf && savedRailconf.length > 0) {
                     //pass saved config to frontend
-                    data.railconf = savedRailconf;
+                    data.railConf = savedRailconf;
                 }
+                console.log("sssssssssssssssssssss", data)
                 //send current status
                 plr.emit("connectionEstablished", data);
                 plr.emit("timelapseStatus", railStatus);
@@ -322,6 +336,7 @@ io.sockets.on('connection', function (socket) {
 
     //saving shot settings call
     socket.on("saveSettings", function (data) {
+        console.log(data)
         fs.writeFile('public/'+data.file+'.json', JSON.stringify(data.data), "utf8", function () {
         });
     });
@@ -336,6 +351,9 @@ io.sockets.on('connection', function (socket) {
     //manual slide call
     socket.on("manualSlide", function (data) {
         runManualSlide(data)
-
+    });
+    //update position
+    socket.on("resetPosition", function (data) {
+        railStatus.currentPosition = 0;
     });
 });
