@@ -68,3 +68,19 @@ md-switch {
     font-size: 20px;
   }
 }
+md-toast {
+  height: 100%;
+  .md-toast-content {
+    background-color:#2AAB7C !important;
+  }
+}
+.author {
+  position: relative;
+  bottom: 0px;
+  padding: 10px;
+  color: #2AA0AB;
+  font-size: 15px;
+  text-align: center;
+  display: block;
+  text-decoration: none;
+}

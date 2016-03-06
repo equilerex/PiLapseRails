@@ -1,7 +1,17 @@
-"use strict";
+//***********************************************************
+// PiLapseRails
+// raspberry Pi powered timelapse controller
+// author: Joosep Kõivistik // koivistik.com
+// repository: https://github.com/equilerex/PiLapseRails
+//***********************************************************
 
-angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry, $timeout){
-    var windowsDevEnvironment = false;
+
+angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry, $timeout,$mdToast){
+    //***********************************************************
+    // dev mode... set true in www.js and main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
+    //***********************************************************
+    var windowsDevEnvironment = false; //set true in()
+
     //***********************************************************
     // settings slide out bar
     //***********************************************************
@@ -32,17 +42,16 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //***********************************************************
     $scope.defaultLapseConf = {
         "bulbMode":false,
-        "shutterSpeed":300,
+        "shutterSpeed":1000,
         "focusLength":0,
         "motorPulse":1000,
-        "waitLength":500,
-        "direction":false, //backward
+        "waitLength":100,
+        "direction":true, //backward
         "loopEnabled":false,
         "loopCount":false
     };
     $scope.defaultRailConf = {
-        "focusEnabled":false,
-        "railLength":false
+        "focusEnabled":false
     };
     $scope.railStatus = {
         "shotsLeft":0,
@@ -59,8 +68,22 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //***********************************************************
     //check if not too close to end of rails
     $scope.endOfRails = function() {
-        return $scope.lapseConf.direction && $scope.railStatus.currentPosition >= $scope.railConf.railLength - $scope.lapseConf.motorPulse || !$scope.lapseConf.direction && $scope.railStatus.currentPosition <= $scope.lapseConf.motorPulse
+        // return $scope.lapseConf.direction && $scope.railStatus.currentPosition >= $scope.railConf.railLength - $scope.lapseConf.motorPulse || !$scope.lapseConf.direction && $scope.railStatus.currentPosition <= $scope.lapseConf.motorPulse
     };
+    var loopAddon = function() {
+        var loopAddon = 0;
+        var count = 0;
+        if( $scope.railStatus.loopCount) {
+            count = $scope.railStatus.loopCount
+        } else {
+            count = $scope.lapseConf.loopCount
+        }
+        if($scope.lapseConf.loopEnabled && count>0) {
+            return loopAddon = $scope.railConf.railLength*count;
+        } else {
+            return 0
+        }
+    }
     //progress bar
     $scope.loadBar = function() {
         var calculate = ($scope.railStatus.shotsLeft-$scope.railStatus.count)/($scope.railStatus.shotsLeft/100)
@@ -72,27 +95,25 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
     //shots calculation
     $scope.shotsLeft =  function() {
-        var loopAddon = 0;
-        var count = 0;
-        if( $scope.railStatus.loopCount) {
-            count = $scope.railStatus.loopCount
-        } else {
-            count = $scope.lapseConf.loopCount
-        }
-        if($scope.lapseConf.loopEnabled && count>0) {
-            loopAddon = $scope.railConf.railLength*count;
-        }
-        console.log(loopAddon,  count)
+        //shots depend on the rail length divided by motor pulse
+        var value = 0;
         if($scope.lapseConf.direction) {
-            return  parseInt((($scope.railConf.railLength-$scope.railStatus.currentPosition+loopAddon)/$scope.lapseConf.motorPulse))
+            value = parseInt((($scope.railConf.railLength-$scope.railStatus.currentPosition)+loopAddon())/$scope.lapseConf.motorPulse)
         } else {
-            return  parseInt(($scope.railStatus.currentPosition+loopAddon)/$scope.lapseConf.motorPulse)
+            console.log($scope.railStatus.currentPosition, loopAddon(), $scope.lapseConf.motorPulse)
+            value =  parseInt(($scope.railStatus.currentPosition+loopAddon())/$scope.lapseConf.motorPulse)
+        }
+        //last shot behaves a bit fishy
+        if (value > 0) {
+            return value + 1
+        } else {
+            return 0
         }
     };
     //remaining time calculation
     $scope.timeLeft =  function() {
         var timeLeft =  moment.duration($scope.intervalNumber()*$scope.shotsLeft())
-        return  moment(timeLeft._data).format("mm:ss:SS")
+        return  moment(timeLeft._data).format("HH:mm:ss:SS")
     };
     //interval calculation
     $scope.intervalNumber =  function() {
@@ -185,16 +206,39 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
     //reset lapseConf
     $scope.resetLapseConf = function(file, data) {
-        $scope.lapseConf = angular.copy($scope.defaultLapseConf)
+        $scope.lapseConf = angular.copy($scope.defaultLapseConf);
         socket.emit('saveSettings',{"file":"railconf","data":$scope.defaultLapseConf});
     };
+
+
     $scope.resetCurrentPosition = function() {
         $scope.railStatus.currentPosition = 0;
         socket.emit('resetPosition', $scope.railStatus);
+        $scope.showSimpleToast("Position set to 0");
     };
 
     //save settings
     $scope.saveSettings = function(file, data) {
         socket.emit('saveSettings',{"file":file,"data":data});
-    }
+    };
+    //active timelapse feedback info
+    socket.on('settingsSaved', function (data) {
+        $scope.showSimpleToast("Settings saved");
+    });
+
+    //confirmation messages
+    $scope.showSimpleToast = function(message) {
+        $mdToast.show(
+            $mdToast.simple()
+                .textContent(message)
+                .position("top")
+                .hideDelay(1000)
+        );
+    };
+
+    //save settings
+    $scope.shutOffPi = function() {
+        socket.emit('shutOffPi',"shut it!");
+    };
+
 });

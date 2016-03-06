@@ -1,18 +1,30 @@
-var windowsDevEnvironment = false
+//***********************************************************
+// PiLapseRails
+// raspberry Pi powered timelapse controller
+// author: Joosep Kõivistik // koivistik.com
+// repository: https://github.com/equilerex/PiLapseRails
+//***********************************************************
+
+
+
+//***********************************************************
+// dev mode... set true in www.js and main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
+//***********************************************************
+var windowsDevEnvironment = false;
 
 //***********************************************************
 // Dummy / demo function to test on windows, uncomment to test
 //***********************************************************
 var gpio = {
     "read": function (nr, state) {
-        console.log("read pin " + gpio.definitions[nr])
+        //console.log("read pin " + gpio.definitions[nr])
     },
     "open": function (nr, state, func) {
-        console.log("opened pin " + gpio.definitions[nr])
+        //console.log("opened pin " + gpio.definitions[nr])
         func()
     },
     "close": function (nr, state, func) {
-        console.log("stop " + gpio.definitions[nr])
+        //console.log("stop " + gpio.definitions[nr])
     },
     "write": function (nr, state, func) {
         console.log(gpio.definitions.state[state]+" "+gpio.definitions[nr])
@@ -45,6 +57,7 @@ var express = require('express')
     //websocket connection
     , io = require('socket.io').listen(server)
     , spawn = require('child_process').spawn
+    ,exec = require('child_process').exec
     //pin accesss
     //saving settings locally
     , fs = require('fs');
@@ -127,6 +140,8 @@ var stopTimelapse = function(lapseConf) {
     clearTimeout(shutterEvent);
     clearTimeout(engineEvent);
     clearTimeout(intetvalEvent);
+    clearTimeout(intetvalEvent2);
+
 
     gpio.write(pinConf.shutter, 0, function () {});
     gpio.write(pinConf.focus, 0, function () {});
@@ -145,6 +160,7 @@ var stopTimelapse = function(lapseConf) {
     }
     //update status
     railStatus.lapseInProgress = false;
+    delete railStatus.loopCount;
     plr.emit("timelapseStatus", railStatus);
 };
 
@@ -157,6 +173,7 @@ var focusEvent
     ,shutterEvent
     ,engineEvent
     ,intetvalEvent
+    ,intetvalEvent2;
 
 //in case motor is stopped, we need the new locaton
 var lastMotorStart;
@@ -186,7 +203,6 @@ var runTimeLapse = function(data) {
     if (!data.lapseConf.bulbMode) {
         data.lapseConf.shutterSpeed = 0
     }
-
     //single shot cycle
     var shutterCycle = function () {
         //trigger focus & wait for focus length
@@ -201,47 +217,53 @@ var runTimeLapse = function(data) {
                         //update status
                         railStatus.count = railStatus.count+1;
                         plr.emit("timelapseStatus", railStatus);
-                        //trigger motor if theres still room for it
-                        if (data.lapseConf.direction && railStatus.currentPosition <= data.railConf.railLength - data.lapseConf.motorPulse || !data.lapseConf.direction && railStatus.currentPosition >= data.lapseConf.motorPulse) {
-                            gpio.write(motorGpio, 1, function () {
-                                //log start time
-                                lastMotorStart = new Date().getTime();
-                                //stop motor
-                                engineEvent = setTimeout(function () {
-                                    lastMotorStart = false;
-                                    gpio.write(motorGpio, 0, function () {});
-                                    //calculate new position
-                                    if (data.lapseConf.direction === true) {
-                                        railStatus.currentPosition += parseInt(data.lapseConf.motorPulse)
-                                    } else if (data.lapseConf.direction === false) {
-                                        railStatus.currentPosition -= parseInt(data.lapseConf.motorPulse)
-                                    }
-                                    console.log(railStatus.lapseInProgress)
-                                    plr.emit("timelapseStatus", railStatus);
-                                    //wait til interval finishes before shooting again
-                                    intetvalEvent = setTimeout(function () {
-                                        //restart cycle
-                                        shutterCycle()
-                                    }, data.lapseConf.waitLength);
-                                }, data.lapseConf.motorPulse);
-                            });
-                        } else {
-                            //if looping, switch direction
+                        //half of "wait" before engine, half after in order to stabilize the rails
+                        intetvalEvent = setTimeout(function () {
+                            //if loop enabled and end of rails, switch direction
                             if(data.lapseConf.loopEnabled && railStatus.loopCount>0) {
-                                //count loop
-                                railStatus.loopCount -=1;
-                                //switch direction
-                                data.lapseConf.direction = !data.lapseConf.direction;
-                                //switch pins
-                                selectMotorPin();
-                                shutterCycle();
 
-                            //stop if end reached
+                                if (data.lapseConf.direction && railStatus.currentPosition <= data.railConf.railLength - data.lapseConf.motorPulse || !data.lapseConf.direction && railStatus.currentPosition >= data.lapseConf.motorPulse) {
+                                    //ignore
+                                } else {
+                                    //count loop
+                                    railStatus.loopCount -=1;
+                                    //switch direction
+                                    data.lapseConf.direction = !data.lapseConf.direction;
+                                    //switch pins
+                                    selectMotorPin();
+                                    console.log("aaaaaaaaaaa switch")
+                                }
+                            }
+                            console.log("aaa")
+                           //trigger motor if theres still room for it
+                            if (data.lapseConf.direction && railStatus.currentPosition <= data.railConf.railLength - data.lapseConf.motorPulse || !data.lapseConf.direction && railStatus.currentPosition >= data.lapseConf.motorPulse) {
+                               console.log("aaaa")
+                                gpio.write(motorGpio, 1, function () {
+                                    //log start time
+                                    lastMotorStart = new Date().getTime();
+                                    //stop motor
+                                    engineEvent = setTimeout(function () {
+                                        lastMotorStart = false;
+                                        gpio.write(motorGpio, 0, function () {});
+                                        //calculate new position
+                                        if (data.lapseConf.direction === true) {
+                                            railStatus.currentPosition += parseInt(data.lapseConf.motorPulse)
+                                        } else if (data.lapseConf.direction === false) {
+                                            railStatus.currentPosition -= parseInt(data.lapseConf.motorPulse)
+                                        }
+                                        plr.emit("timelapseStatus", railStatus);
+                                        //wait til interval finishes before shooting again
+                                        intetvalEvent2 = setTimeout(function () {
+                                            //restart cycle
+                                            shutterCycle()
+                                        }, data.lapseConf.waitLength / 2);
+                                    }, data.lapseConf.motorPulse);
+                                });
                             } else {
+                                console.log("sttt")
                                 stopTimelapse(data.lapseConf);
                             }
-                        }
-
+                        }, data.lapseConf.waitLength / 2);
                     }, data.lapseConf.shutterSpeed)
                 })
             }, data.lapseConf.focusLength)
@@ -325,7 +347,6 @@ io.sockets.on('connection', function (socket) {
                     //pass saved config to frontend
                     data.railConf = savedRailconf;
                 }
-                console.log("sssssssssssssssssssss", data)
                 //send current status
                 plr.emit("connectionEstablished", data);
                 plr.emit("timelapseStatus", railStatus);
@@ -336,8 +357,10 @@ io.sockets.on('connection', function (socket) {
 
     //saving shot settings call
     socket.on("saveSettings", function (data) {
-        console.log(data)
         fs.writeFile('public/'+data.file+'.json', JSON.stringify(data.data), "utf8", function () {
+            if(data.file === "railconf") {
+                plr.emit("settingsSaved", data);
+            }
         });
     });
     //running timelapse call
@@ -356,4 +379,12 @@ io.sockets.on('connection', function (socket) {
     socket.on("resetPosition", function (data) {
         railStatus.currentPosition = 0;
     });
+
+    //shut down
+    socket.on("shutOffPi", function (data) {
+        exec("sudo shutdown -h now", function (error, stdout, stderr) {
+            return;
+        });
+    });
+
 });

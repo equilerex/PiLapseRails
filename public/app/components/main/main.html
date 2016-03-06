@@ -81,6 +81,22 @@
             </md-button>
         </div>
     </div>
+    <md-toolbar class="black_background">
+        <h2 class="md-toolbar-tools">
+            <i class="material-icons icon">settings</i>Raspberry
+        </h2>
+    </md-toolbar>
+    <div layout="column" layout-padding="10">
+        <div layout="column">
+            <md-button class="md-raised md-primary width_100 md-block no_margin"
+                       type="button"
+                       ng-disabled="railStatus.lapseInProgress"
+                       ng-click="shutOffPi(); ">
+                Shut off Raspberry
+            </md-button>
+        </div>
+    </div>
+    <a href="http://koivistik.com?src=pilapserails" class="author">PiLapseRails © Koivistik.com</a>
 </md-sidenav>
 <div layout="row" layout-align="center">
 
@@ -89,7 +105,7 @@
         <h1>{{railStatus.count}} / {{railStatus.shotsLeft}}</h1>
     </div>
     <div flex="33" layout-align="center" class="main_counter">
-        <label>Time Left</label>
+        <label>Time Left (h)</label>
         <h1>{{railStatus.timeLeft}}</h1>
     </div>
     <div flex="33" layout-align="center" class="main_counter">
@@ -149,7 +165,7 @@
                 </md-input-container>
             </div>
         </div>
-        <div layout="row" layout-align="center" class="no_bottom_margin">
+        <div layout="row" layout-align="center" class="no_bottom_margin " >
             <div flex>
                 <md-switch ng-model="lapseConf.loopEnabled"
                            ng-change="updateEstimate()"
@@ -177,13 +193,12 @@
             </div>
         </div>
         <div layout="row" layout-align="center">
-                <md-button class="md-raised md-primary width_100 md-block" type="submit" ng-disabled="endOfRails()"><span
+                <md-button class="md-raised md-primary width_100 md-block" type="submit" ng-disabled="shotsLeft() === 0"><span
                         ng-if="!endOfRails()">Start Timelapse</span><span ng-if="endOfRails()">change direction!</span>
                 </md-button>
         </div>
     </form>
     <div ng-if="railStatus.lapseInProgress">
-
         <div layout="row" layout-align="center">
             <md-progress-linear md-mode="determinate" value="{{loadBar()}}"></md-progress-linear>
         </div>
