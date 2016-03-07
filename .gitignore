@@ -44,5 +44,3 @@ Temporary Items
 
 #dev specific
 node_modules
-.idea*
-.idea/workspace.xml

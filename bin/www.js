@@ -8,23 +8,23 @@
 
 
 //***********************************************************
-// dev mode... set true in www.js and main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
-//***********************************************************
-var windowsDevEnvironment = false;
+// dev mode... set true if windows, needs changed in main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
+var windowsDevEnvironment = /^win/.test(process.platform);
+
 
 //***********************************************************
 // Dummy / demo function to test on windows, uncomment to test
 //***********************************************************
 var gpio = {
     "read": function (nr, state) {
-        //console.log("read pin " + gpio.definitions[nr])
+        console.log("read pin " + gpio.definitions[nr])
     },
     "open": function (nr, state, func) {
-        //console.log("opened pin " + gpio.definitions[nr])
+        console.log("opened pin " + gpio.definitions[nr])
         func()
     },
     "close": function (nr, state, func) {
-        //console.log("stop " + gpio.definitions[nr])
+        console.log("stop " + gpio.definitions[nr])
     },
     "write": function (nr, state, func) {
         console.log(gpio.definitions.state[state]+" "+gpio.definitions[nr])
@@ -41,6 +41,7 @@ var gpio = {
         }
     }
 };
+//normal pin plugin
 if(!windowsDevEnvironment) {
     var gpio = require("pi-gpio")
 }
@@ -61,12 +62,15 @@ var express = require('express')
     //pin accesss
     //saving settings locally
     , fs = require('fs');
-
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'ejs');
 app.set('port', process.env.TEST_PORT || 8080);
 //set default route
-app.get('/', function (req, res) {
-    res.sendFile('index.html', {root: path.join(__dirname, '../public')});
+/* GET home page. */
+app.get('/', function(req, res, next) {
+    res.render('index', {  title: 'Express', "absoluteUrl":req.headers.host});
 });
+
 //make files accessible in public folder
 app.use("/public", express.static(path.join(__dirname, '../public')));
 
@@ -85,6 +89,9 @@ var pinConf = {
 };
 
 
+fs.readFile(path.join(__dirname, '../public/railconf.json'), 'utf8', function (err, savedRailconf) {
+
+});
 
 //***********************************************************
 // Status feedback
@@ -97,35 +104,33 @@ var railStatus = {
     "count":0
 };
 
+var serverRailConf = false;
+var serverLapseConf = false;
 
 //***********************************************************
-// Clean up pin states (ensure there is no conflicts)
+// get saved settings
 //***********************************************************
+fs.readFile(path.join(__dirname, '../public/railconf.json'), 'utf8', function (err, savedRailconf) {
+    fs.readFile(path.join(__dirname, '../public/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
+        if (savedLapseconf && savedLapseconf.length > 0) {
+            //store for socket connections
+            serverLapseConf = savedLapseconf;
+        }
+        if (savedRailconf && savedRailconf.length > 0) {
+            //store for socket connections
+            serverRailConf = savedRailconf;
+            //if position should be remembered on boot, restore it.
+            if(serverLapseConf.rememberPosition) {
+                railStatus.currentPosition = savedRailconf.savedPosition
+            }
+        };
+    });
 
-//probably not needed
-        /*gpio.read(pinConf.focus, function(err, value) {
-            console.log(value, err);	// The current state of the pin
-        });
-        gpio.read(pinConf.shutter, function(err, value) {
-            console.log(value, err);	// The current state of the pin
-        });
-        gpio.read(pinConf.forward, function(err, value) {
-            console.log(value, err);	// The current state of the pin
-        });
-        gpio.read(pinConf.back, function(err, value) {
-            console.log(value, err);	// The current state of the pin
-        });
-
-        gpio.close(pinConf.focus);
-        gpio.close(pinConf.shutter);
-        gpio.close(pinConf.forward);
-        gpio.close(pinConf.back);*/
-
-
+});
 //***********************************************************
 //open pins for business
 //***********************************************************
-var openErr = false
+var openErr = false;
 var openCount = 0;
 var openPins = function() {
     //failsafe
@@ -157,7 +162,15 @@ var openPins = function() {
 };
 openPins();
 
-
+//***********************************************************
+// if you want to save position on boot
+//***********************************************************
+var railMoved = function() {
+    if(railConf.rememberPosition) {
+        railConf.savedPosition = railStatus.currentPosition;
+        fs.writeFile(path.join(__dirname, '../public/railconf.json'), JSON.stringify(railStatus), "utf8", function (err) {});
+    }
+};
 
 //***********************************************************
 // cancel active timelapse
@@ -189,6 +202,8 @@ var stopTimelapse = function(lapseConf) {
     //update status
     railStatus.lapseInProgress = false;
     delete railStatus.loopCount;
+    //save state
+    railMoved();
     plr.emit("timelapseStatus", railStatus);
 };
 
@@ -223,9 +238,7 @@ var runTimeLapse = function(data) {
     selectMotorPin();
 
     //save new settings locally
-    fs.writeFile(path.join(__dirname, '../public/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {
-        console.log(err)
-    });
+    fs.writeFile(path.join(__dirname, '../public/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {});
 
 
     //set shutter speed default length if bulb disabled
@@ -260,13 +273,10 @@ var runTimeLapse = function(data) {
                                     data.lapseConf.direction = !data.lapseConf.direction;
                                     //switch pins
                                     selectMotorPin();
-                                    console.log("aaaaaaaaaaa switch")
                                 }
                             }
-                            console.log("aaa")
                            //trigger motor if theres still room for it
                             if (data.lapseConf.direction && railStatus.currentPosition <= data.railConf.railLength - data.lapseConf.motorPulse || !data.lapseConf.direction && railStatus.currentPosition >= data.lapseConf.motorPulse) {
-                               console.log("aaaa")
                                 gpio.write(motorGpio, 1, function () {
                                     //log start time
                                     lastMotorStart = new Date().getTime();
@@ -289,7 +299,6 @@ var runTimeLapse = function(data) {
                                     }, data.lapseConf.motorPulse);
                                 });
                             } else {
-                                console.log("sttt")
                                 stopTimelapse(data.lapseConf);
                             }
                         }, data.lapseConf.waitLength / 2);
@@ -338,7 +347,8 @@ var runManualSlide = function(data) {
         railStatus.lapseInProgress = false;
         manualDirection = false;
         clearTimeout(timer);
-        plr.emit("timelapseStatus", railStatus);
+        //save state
+        railMoved();
         plr.emit("timelapseStatus", railStatus);
     }
 };
@@ -363,20 +373,18 @@ io.sockets.on('connection', function (socket) {
         plr = socket;
         //If there are saved values from last session, send them to frontend
         fs.readFile(path.join(__dirname, '../public/railconf.json'), 'utf8', function (err, savedRailconf) {
-            console.log(err)
             fs.readFile(path.join(__dirname, '../public/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
-                console.log(err)
                 var data = {
                     "lapseConf":false,
                     "railConf":false
                 };
-                if (savedLapseconf && savedLapseconf.length > 0) {
+                if (serverLapseConf) {
                     //pass saved config to frontend
-                    data.lapseConf = savedLapseconf;
+                    data.lapseConf = serverLapseConf;
                 }
-                if (savedRailconf && savedRailconf.length > 0) {
+                if (serverRailConf) {
                     //pass saved config to frontend
-                    data.railConf = savedRailconf;
+                    data.railConf = serverRailConf
                 }
                 //send current status
                 plr.emit("connectionEstablished", data);
@@ -388,8 +396,13 @@ io.sockets.on('connection', function (socket) {
 
     //saving shot settings call
     socket.on("saveSettings", function (data) {
+        //in remember enabled, save status right away
+        if(data.file === "railconf") {
+            if(data.rememberPosition && !serverRailConf.rememberPosition) {
+                railMoved()
+            }
+        }
         fs.writeFile(path.join(__dirname, '../public/'+data.file+'.json'), JSON.stringify(data.data), "utf8", function (err) {
-            console.log(err)
             if(data.file === "railconf") {
                 plr.emit("settingsSaved", data);
             }

@@ -6,11 +6,11 @@
 //***********************************************************
 
 
-angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry, $timeout,$mdToast){
+angular.module("ngapp").controller("MainController", function(shared, $state, $scope, $mdSidenav, $mdComponentRegistry, $timeout,$mdToast, $location){
     //***********************************************************
     // dev mode... set true in www.js and main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
     //***********************************************************
-    var windowsDevEnvironment = false; //set true in()
+    var windowsDevEnvironment = true; //set true in()
 
     //***********************************************************
     // settings slide out bar
@@ -52,7 +52,8 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         "loopCount":false
     };
     $scope.defaultRailConf = {
-        "focusEnabled":false
+        "focusEnabled":false,
+        "rememberPosition":false
     };
     $scope.railStatus = {
         "shotsLeft":0,
@@ -67,10 +68,6 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //***********************************************************
     // progress / calculation feedback
     //***********************************************************
-    //check if not too close to end of rails
-    $scope.endOfRails = function() {
-        // return $scope.lapseConf.direction && $scope.railStatus.currentPosition >= $scope.railConf.railLength - $scope.lapseConf.motorPulse || !$scope.lapseConf.direction && $scope.railStatus.currentPosition <= $scope.lapseConf.motorPulse
-    };
     var loopAddon = function() {
         var loopAddon = 0;
         var count = 0;
@@ -133,6 +130,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //update all calculations
     $scope.updateEstimate = function(){
         var multiply = 0;
+        var count = 0;
         if($scope.railConf.loopEnabled) {
             multiply = $scope.railConf.loopCount
         }
@@ -149,10 +147,14 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //***********************************************************
     //connect to raspberry data feed
     var socket = "";
+    //socket is on current environment (used to switch between dev environment and raspberry)
+    var url = window.location.href ;
+    var arr = url.split("/");
+    var absoluteUrl = arr[0] + "//" + arr[2];
     if(windowsDevEnvironment){
-        socket = io.connect('http://localhost:8080');
+        socket = io.connect(absoluteUrl);
     } else {
-        socket = io.connect('http://192.168.43.80:8080');
+        socket = io.connect(absoluteUrl);
     }
     //device has been connected event
     socket.on('connect', function(data){
