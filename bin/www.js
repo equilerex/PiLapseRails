@@ -68,7 +68,7 @@ app.set('port', process.env.TEST_PORT || 8080);
 //set default route
 /* GET home page. */
 app.get('/', function(req, res, next) {
-    res.render('index', {  title: 'Express', "absoluteUrl":req.headers.host});
+    res.render(path.join(__dirname, '../public/app/views/index'), {  root: path.join(__dirname, '../public/'), "absoluteUrl":req.headers.host});
 });
 
 //make files accessible in public folder
@@ -89,7 +89,7 @@ var pinConf = {
 };
 
 
-fs.readFile(path.join(__dirname, '../public/railconf.json'), 'utf8', function (err, savedRailconf) {
+fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', function (err, savedRailconf) {
 
 });
 
@@ -110,8 +110,8 @@ var serverLapseConf = false;
 //***********************************************************
 // get saved settings
 //***********************************************************
-fs.readFile(path.join(__dirname, '../public/railconf.json'), 'utf8', function (err, savedRailconf) {
-    fs.readFile(path.join(__dirname, '../public/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
+fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', function (err, savedRailconf) {
+    fs.readFile(path.join(__dirname, '../public/app/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
         if (savedLapseconf && savedLapseconf.length > 0) {
             //store for socket connections
             serverLapseConf = savedLapseconf;
@@ -168,7 +168,7 @@ openPins();
 var railMoved = function() {
     if(railConf.rememberPosition) {
         railConf.savedPosition = railStatus.currentPosition;
-        fs.writeFile(path.join(__dirname, '../public/railconf.json'), JSON.stringify(railStatus), "utf8", function (err) {});
+        fs.writeFile(path.join(__dirname, '../public/app/railconf.json'), JSON.stringify(railStatus), "utf8", function (err) {});
     }
 };
 
@@ -238,7 +238,7 @@ var runTimeLapse = function(data) {
     selectMotorPin();
 
     //save new settings locally
-    fs.writeFile(path.join(__dirname, '../public/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {});
+    fs.writeFile(path.join(__dirname, '../public/app/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {});
 
 
     //set shutter speed default length if bulb disabled
@@ -372,8 +372,8 @@ io.sockets.on('connection', function (socket) {
     socket.on("pageLoaded", function () {
         plr = socket;
         //If there are saved values from last session, send them to frontend
-        fs.readFile(path.join(__dirname, '../public/railconf.json'), 'utf8', function (err, savedRailconf) {
-            fs.readFile(path.join(__dirname, '../public/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
+        fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', function (err, savedRailconf) {
+            fs.readFile(path.join(__dirname, '../public/app/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
                 var data = {
                     "lapseConf":false,
                     "railConf":false
@@ -402,7 +402,7 @@ io.sockets.on('connection', function (socket) {
                 railMoved()
             }
         }
-        fs.writeFile(path.join(__dirname, '../public/'+data.file+'.json'), JSON.stringify(data.data), "utf8", function (err) {
+        fs.writeFile(path.join(__dirname, '../public/app/'+data.file+'.json'), JSON.stringify(data.data), "utf8", function (err) {
             if(data.file === "railconf") {
                 plr.emit("settingsSaved", data);
             }
