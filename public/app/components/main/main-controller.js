@@ -46,7 +46,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         "shutterSpeed":1000,
         "focusLength":0,
         "motorPulse":1000,
-        "waitLength":100,
+        "waitLength":1000,
         "direction":true, //backward
         "loopEnabled":false,
         "loopCount":false
@@ -130,11 +130,11 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //update all calculations
     $scope.updateEstimate = function(){
         var multiply = 0;
-        var count = 0;
         if($scope.railConf.loopEnabled) {
             multiply = $scope.railConf.loopCount
         }
         if(!$scope.railStatus.lapseInProgress) {
+            $scope.railStatus.count = 0;
             $scope.railStatus.shotsLeft = $scope.shotsLeft();
         }
         $scope.railStatus.timeLeft = $scope.timeLeft();
@@ -165,13 +165,13 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         //use saved data
         $scope.$apply(function() {
             if (data.railConf) {
-                $scope.railConf = JSON.parse(data.railConf);
+                $scope.railConf = data.railConf
                 //use default
             } else {
                 $scope.railConf = $scope.defaultRailConf
             }
             if (data.lapseConf) {
-                $scope.lapseConf = JSON.parse(data.lapseConf);
+                $scope.lapseConf = data.lapseConf
                 //use default
             } else {
                 $scope.lapseConf = $scope.defaultLapseConf

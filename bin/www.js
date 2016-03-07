@@ -114,14 +114,14 @@ fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', functio
     fs.readFile(path.join(__dirname, '../public/app/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
         if (savedLapseconf && savedLapseconf.length > 0) {
             //store for socket connections
-            serverLapseConf = savedLapseconf;
+            serverLapseConf = JSON.parse(savedLapseconf);
         }
         if (savedRailconf && savedRailconf.length > 0) {
             //store for socket connections
-            serverRailConf = savedRailconf;
+            serverRailConf = JSON.parse(savedRailconf);
             //if position should be remembered on boot, restore it.
-            if(serverLapseConf.rememberPosition) {
-                railStatus.currentPosition = savedRailconf.savedPosition
+            if(serverRailConf.rememberPosition && serverRailConf.savedPosition) {
+                railStatus.currentPosition = serverRailConf.savedPosition
             }
         };
     });
@@ -166,9 +166,10 @@ openPins();
 // if you want to save position on boot
 //***********************************************************
 var railMoved = function() {
-    if(railConf.rememberPosition) {
-        railConf.savedPosition = railStatus.currentPosition;
-        fs.writeFile(path.join(__dirname, '../public/app/railconf.json'), JSON.stringify(railStatus), "utf8", function (err) {});
+    if(serverRailConf.rememberPosition) {
+        serverRailConf.savedPosition = railStatus.currentPosition;
+        console.log(serverRailConf.savedPosition)
+        fs.writeFile(path.join(__dirname, '../public/app/railconf.json'), JSON.stringify(serverRailConf), "utf8", function (err) {});
     }
 };
 
@@ -398,7 +399,9 @@ io.sockets.on('connection', function (socket) {
     socket.on("saveSettings", function (data) {
         //in remember enabled, save status right away
         if(data.file === "railconf") {
-            if(data.rememberPosition && !serverRailConf.rememberPosition) {
+            var temp = data.data.rememberPosition
+            serverRailConf = data.data
+            if(data.data.rememberPosition && !temp) {
                 railMoved()
             }
         }
