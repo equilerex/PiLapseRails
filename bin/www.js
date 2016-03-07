@@ -195,7 +195,7 @@ var runTimeLapse = function(data) {
     selectMotorPin();
 
     //save new settings locally
-    fs.writeFile('public/lapseconf.json', JSON.stringify(data.lapseConf), "utf8", function (err) {
+    fs.writeFile(path.join(__dirname, '../public/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {
         console.log(err)
     });
 
@@ -334,9 +334,9 @@ io.sockets.on('connection', function (socket) {
     socket.on("pageLoaded", function () {
         plr = socket;
         //If there are saved values from last session, send them to frontend
-        fs.readFile('public/railconf.json', 'utf8', function (err, savedRailconf) {
+        fs.readFile(path.join(__dirname, '../public/railconf.json'), 'utf8', function (err, savedRailconf) {
             console.log(err)
-            fs.readFile('public/lapseconf.json', 'utf8', function (err2, savedLapseconf) {
+            fs.readFile(path.join(__dirname, '../public/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
                 console.log(err)
                 var data = {
                     "lapseConf":false,
@@ -360,7 +360,7 @@ io.sockets.on('connection', function (socket) {
 
     //saving shot settings call
     socket.on("saveSettings", function (data) {
-        fs.writeFile('public/'+data.file+'.json', JSON.stringify(data.data), "utf8", function (err) {
+        fs.writeFile(path.join(__dirname, '../public/'+data.file+'.json'), JSON.stringify(data.data), "utf8", function (err) {
             console.log(err)
             if(data.file === "railconf") {
                 plr.emit("settingsSaved", data);
