@@ -125,10 +125,32 @@ var railStatus = {
 //***********************************************************
 //open pins for business
 //***********************************************************
-gpio.open(pinConf.focus,    "output", function () {});
-gpio.open(pinConf.shutter,  "output", function () {});
-gpio.open(pinConf.forward,  "output", function () {});
-gpio.open(pinConf.back,     "output", function () {});
+var openErr = false
+var openCount = 0;
+var openPins = function() {
+    //failsafe
+    openCount+=1
+    var markError = function(err) {
+        if(err) {
+            openErr = true
+        }
+    };
+    gpio.open(pinConf.focus,    "output", function (err) {markError()});
+    gpio.open(pinConf.shutter,  "output", function (err) {markError()});
+    gpio.open(pinConf.forward,  "output", function (err) {markError()});
+    gpio.open(pinConf.back,     "output", function (err) {markError()});
+    //if outdated session then opening nodes that are open already produces error
+    if(openErr && openCount<5) {
+        gpio.close(pinConf.focus);
+        gpio.close(pinConf.shutter);
+        gpio.close(pinConf.forward);
+        gpio.close(pinConf.back);
+        openErr = false;
+        openPins()
+    }
+};
+openPins();
+
 
 
 //***********************************************************
