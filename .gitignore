@@ -43,7 +43,7 @@ Temporary Items
 .apdisk
 
 #dev specific
-node_modules
+node_modules 
+public/app/lapseconf.json
+public/app/railconf.json
 .idea/workspace.xml
-railconf.js
-lapseconf.js

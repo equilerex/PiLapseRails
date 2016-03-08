@@ -252,6 +252,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
 
     //shut off
     $scope.shutOffPi = function() {
+        $scope.poweredOff = true;
         socket.emit('shutOffPi',"shut it!");
     };
 

@@ -430,7 +430,6 @@ io.sockets.on('connection', function (socket) {
 
     //shut down
     socket.on("shutOffPi", function (data) {
-        $scope.poweredOff = true;
         exec("sudo shutdown -h now", function (error, stdout, stderr) {
             return;
         });
