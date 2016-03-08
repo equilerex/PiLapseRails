@@ -36,6 +36,17 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         .then(function(){
         });
     };
+    //close menu when moving back
+    $scope.openMenu = function () {
+        $location.search("menuOpen", true)
+    };
+    $scope.$on('$locationChangeStart', function(event, next, current) {
+        if(current.split("#")[1]==="/main?menuOpen" && next.split("#")[1]==="/main") {
+            if($scope.main.isOpen()) {
+                $scope.main.toggle()
+            }
+        }
+    });
 
 
     //***********************************************************
@@ -49,7 +60,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         "waitLength":1000,
         "direction":true, //backward
         "loopEnabled":false,
-        "loopCount":false
+        "loopCount":0
     };
     $scope.defaultRailConf = {
         "focusEnabled":false,
@@ -210,7 +221,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     //reset lapseConf
     $scope.resetLapseConf = function(file, data) {
         $scope.lapseConf = angular.copy($scope.defaultLapseConf);
-        socket.emit('saveSettings',{"file":"railconf","data":$scope.defaultLapseConf});
+        socket.emit('saveSettings',{"file":"lapseconf","data":$scope.defaultLapseConf});
     };
 
 

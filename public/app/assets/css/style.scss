@@ -69,7 +69,8 @@ md-switch {
   }
 }
 md-toast {
-  height: 100%;
+  top: 0px;
+  height: 60px;
   .md-toast-content {
     background-color:#2AAB7C !important;
   }
