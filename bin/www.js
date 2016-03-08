@@ -8,9 +8,9 @@
 
 
 //***********************************************************
-// dev mode... set true if windows, needs changed in main-controller.js & uncomment http://localhost:8080/public/app/vendor/socket.js  in index.html and comment out src="http://192.168.43.80:8080/public/app/vendor/socket.js
-var windowsDevEnvironment = /^win/.test(process.platform);
-
+// dev mode... set true if windows
+var os = require('os')
+var windowsDevEnvironment = os.platform() === "win32"; 
 
 //***********************************************************
 // Dummy / demo function to test on windows, uncomment to test
