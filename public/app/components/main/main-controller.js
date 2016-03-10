@@ -254,7 +254,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         socket.emit('manualSlide',{direction:direction, state:!state});
     };
     //reset RailConf
-    $scope.resetRailConf = function(file, data) {
+    $scope.resetConf = function(file, data) {
         $scope.railConf = angular.copy($scope.defaultRailConf)
         socket.emit('saveSettings',{"file":"railconf","data":$scope.defaultRailConf});
         $scope.lapseConf = angular.copy($scope.defaultLapseConf);
