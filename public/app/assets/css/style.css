@@ -58,11 +58,19 @@
     border-width: 0px 2px; }
   .main_counter h1 {
     font-size: 20px; }
+  .main_counter.time_counter label {
+    display: block;
+    margin: 0px; }
+  .main_counter.time_counter .sub_label {
+    font-size: 11px; }
+  .main_counter.time_counter h1 {
+    margin-top: 10px; }
 
 md-toast {
-  height: 100%; }
+  top: 0px;
+  height: 60px; }
   md-toast .md-toast-content {
-    background-color: #2AAB7C !important; }
+    background-color: #D01F1F !important; }
 
 .author {
   position: relative;

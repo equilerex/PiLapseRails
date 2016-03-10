@@ -67,12 +67,25 @@ md-switch {
   h1 {
     font-size: 20px;
   }
+  &.time_counter {
+    label {
+      display: block;
+      margin: 0px;
+    }
+    .sub_label {
+      font-size: 11px;
+    }
+    h1 {
+      margin-top: 10px;
+    }
+  }
 }
+
 md-toast {
   top: 0px;
   height: 60px;
   .md-toast-content {
-    background-color:#2AAB7C !important;
+    background-color:#D01F1F !important;
   }
 }
 .author {

@@ -73,6 +73,22 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
     $scope.lapseConf = {};
     $scope.railConf = {};
+    var timeFormats = {
+        minute:{
+            "human":"min | sec | ms",
+            "machine":"mm:ss:SS"
+        },
+        hour: {
+            "human":"hour | min | sec",
+            "machine":"HH:mm:ss"
+        },
+        day: {
+            "human":"Days",
+            "machine":"day"
+        }
+    };
+    $scope.timeLeftFormat = timeFormats.underHour
+    $scope.intervalFormat =  timeFormats.underHour
 
 
 
@@ -102,6 +118,21 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
             return parseInt(calculate)
         }
     };
+    //choose the best format for estimates
+    var chooseFormat = function(timeType, duration) {
+
+        //select format
+        var type = "minute";
+        if(duration > 86400000) {
+            type ="day"
+        } else if(duration > 3600000) {
+            type ="hour"
+        }
+        //save human readable value
+        $scope[timeType] = timeFormats[type].human;
+        //return value into the source function
+        return timeFormats[type].machine;
+    };
     //shots calculation
     $scope.shotsLeft =  function() {
         //shots depend on the rail length divided by motor pulse
@@ -109,7 +140,6 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         if($scope.lapseConf.direction) {
             value = parseInt((($scope.railConf.railLength-$scope.railStatus.currentPosition)+loopAddon())/$scope.lapseConf.motorPulse)
         } else {
-            console.log($scope.railStatus.currentPosition, loopAddon(), $scope.lapseConf.motorPulse)
             value =  parseInt(($scope.railStatus.currentPosition+loopAddon())/$scope.lapseConf.motorPulse)
         }
         //last shot behaves a bit fishy
@@ -121,8 +151,13 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
     //remaining time calculation
     $scope.timeLeft =  function() {
-        var timeLeft =  moment.duration($scope.intervalNumber()*$scope.shotsLeft())
-        return  moment(timeLeft._data).format("HH:mm:ss:SS")
+        var timeLeft = $scope.intervalNumber()*$scope.shotsLeft();
+        var momentFormat = chooseFormat("timeLeftFormat",timeLeft)
+        if(momentFormat === "day") {
+            $scope.railStatus.timeLeft =  parseInt(moment.duration(timeLeft).asDays());
+        } else {
+            $scope.railStatus.timeLeft = moment(moment.duration(timeLeft)._data).format(momentFormat)
+        }
     };
     //interval calculation
     $scope.intervalNumber =  function() {
@@ -148,9 +183,14 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
             $scope.railStatus.count = 0;
             $scope.railStatus.shotsLeft = $scope.shotsLeft();
         }
-        $scope.railStatus.timeLeft = $scope.timeLeft();
-        var intervalNumber = moment.duration($scope.intervalNumber());
-        $scope.railStatus.interval =  moment(intervalNumber._data).format("mm:ss:SS");
+        $scope.timeLeft();
+        var intervalNumber = $scope.intervalNumber();
+        var momentFormat = chooseFormat("intervalFormat",intervalNumber)
+        if(momentFormat === "day") {
+            $scope.railStatus.interval =  parseInt(moment.duration(intervalNumber).asDays())
+        } else {
+            $scope.railStatus.interval =  moment(moment.duration(intervalNumber)._data).format(momentFormat);
+        }
     };
 
     //***********************************************************
@@ -217,14 +257,11 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     $scope.resetRailConf = function(file, data) {
         $scope.railConf = angular.copy($scope.defaultRailConf)
         socket.emit('saveSettings',{"file":"railconf","data":$scope.defaultRailConf});
-    };
-    //reset lapseConf
-    $scope.resetLapseConf = function(file, data) {
         $scope.lapseConf = angular.copy($scope.defaultLapseConf);
         socket.emit('saveSettings',{"file":"lapseconf","data":$scope.defaultLapseConf});
     };
 
-
+    //set current position as new "0"
     $scope.resetCurrentPosition = function() {
         $scope.railStatus.currentPosition = 0;
         socket.emit('resetPosition', $scope.railStatus);
@@ -236,8 +273,8 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         socket.emit('saveSettings',{"file":file,"data":data});
     };
     //active timelapse feedback info
-    socket.on('settingsSaved', function (data) {
-        $scope.showSimpleToast("Settings saved");
+    socket.on('errorOnSave', function (data) {
+        $scope.showSimpleToast('Something went wrong while saving settings, better hit "Reset settings" button to ensure nothing is screwed :)');
     });
 
     //confirmation messages
@@ -246,7 +283,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
             $mdToast.simple()
                 .textContent(message)
                 .position("top")
-                .hideDelay(1000)
+                .hideDelay(4000)
         );
     };
 

@@ -10,7 +10,7 @@
 //***********************************************************
 // dev mode... set true if windows
 var os = require('os')
-var windowsDevEnvironment = os.platform() === "win32"; 
+var windowsDevEnvironment = os.platform() === "win32";
 
 //***********************************************************
 // Dummy / demo function to test on windows, uncomment to test
@@ -41,12 +41,10 @@ var gpio = {
         }
     }
 };
-//normal pin plugin
+//normal pin plugin (override dummy)
 if(!windowsDevEnvironment) {
     var gpio = require("pi-gpio")
 }
-
-
 
 //***********************************************************
 // node setup
@@ -89,9 +87,6 @@ var pinConf = {
 };
 
 
-fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', function (err, savedRailconf) {
-
-});
 
 //***********************************************************
 // Status feedback
@@ -108,6 +103,16 @@ var serverRailConf = false;
 var serverLapseConf = false;
 
 //***********************************************************
+// switch back and forward pins (in case you set up your rail the other way around)
+//***********************************************************
+var flipDirection = function() {
+    var newForward = pinConf.back;
+    var newBack = pinConf.forward;
+    pinConf.forward = newForward;
+    pinConf.back = newBack;
+};
+
+//***********************************************************
 // get saved settings
 //***********************************************************
 fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', function (err, savedRailconf) {
@@ -122,6 +127,10 @@ fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', functio
             //if position should be remembered on boot, restore it.
             if(serverRailConf.rememberPosition && serverRailConf.savedPosition) {
                 railStatus.currentPosition = serverRailConf.savedPosition
+            }
+            //if position should be remembered on boot, restore it.
+            if(serverRailConf.flipDirection) {
+                flipDirection()
             }
         };
     });
@@ -169,7 +178,11 @@ var railMoved = function() {
     if(serverRailConf.rememberPosition) {
         serverRailConf.savedPosition = railStatus.currentPosition;
         console.log(serverRailConf.savedPosition)
-        fs.writeFile(path.join(__dirname, '../public/app/railconf.json'), JSON.stringify(serverRailConf), "utf8", function (err) {});
+        fs.writeFile(path.join(__dirname, '../public/app/railconf.json'), JSON.stringify(serverRailConf), "utf8", function (err) {
+            if(err) {
+                plr.emit("errorOnSave");
+            }
+        });
     }
 };
 
@@ -239,7 +252,11 @@ var runTimeLapse = function(data) {
     selectMotorPin();
 
     //save new settings locally
-    fs.writeFile(path.join(__dirname, '../public/app/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {});
+    fs.writeFile(path.join(__dirname, '../public/app/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {
+        if(err) {
+            plr.emit("errorOnSave");
+        }
+    });
 
 
     //set shutter speed default length if bulb disabled
@@ -373,41 +390,44 @@ io.sockets.on('connection', function (socket) {
     socket.on("pageLoaded", function () {
         plr = socket;
         //If there are saved values from last session, send them to frontend
-        fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', function (err, savedRailconf) {
-            fs.readFile(path.join(__dirname, '../public/app/lapseconf.json'), 'utf8', function (err2, savedLapseconf) {
-                var data = {
-                    "lapseConf":false,
-                    "railConf":false
-                };
-                if (serverLapseConf) {
-                    //pass saved config to frontend
-                    data.lapseConf = serverLapseConf;
-                }
-                if (serverRailConf) {
-                    //pass saved config to frontend
-                    data.railConf = serverRailConf
-                }
-                //send current status
-                plr.emit("connectionEstablished", data);
-                plr.emit("timelapseStatus", railStatus);
-            });
+        var data = {
+            "lapseConf":false,
+            "railConf":false
+        };
+        if (serverLapseConf) {
+            //pass saved config to frontend
+            data.lapseConf = serverLapseConf;
+        }
+        if (serverRailConf) {
+            //pass saved config to frontend
+            data.railConf = serverRailConf
+        }
+        //send current status
+        plr.emit("connectionEstablished", data);
+        plr.emit("timelapseStatus", railStatus);
 
-        });
     });
 
     //saving shot settings call
     socket.on("saveSettings", function (data) {
-        //in remember enabled, save status right away
         if(data.file === "railconf") {
-            var temp = data.data.rememberPosition
-            serverRailConf = data.data
-            if(data.data.rememberPosition && !temp) {
+            //store old values for comparing
+            var previousRememberPosition = data.data.rememberPosition;
+            var previousFlipDirection = data.data.rememberPosition;
+            //set new data
+            serverRailConf = data.data;
+            //in remember enabled, save status right away
+            if(data.data.rememberPosition && !previousRememberPosition) {
                 railMoved()
+            }
+            //flip motor pins
+            if(data.data.flipDirection && !previousFlipDirection) {
+                flipDirection()
             }
         }
         fs.writeFile(path.join(__dirname, '../public/app/'+data.file+'.json'), JSON.stringify(data.data), "utf8", function (err) {
-            if(data.file === "railconf") {
-                plr.emit("settingsSaved", data);
+            if(err) {
+                plr.emit("errorOnSave");
             }
         });
     });
@@ -427,14 +447,12 @@ io.sockets.on('connection', function (socket) {
     socket.on("resetPosition", function (data) {
         railStatus.currentPosition = 0;
     });
-
     //shut down
     socket.on("shutOffPi", function (data) {
         exec("sudo shutdown -h now", function (error, stdout, stderr) {
             return;
         });
     });
-
     //test shot
     socket.on("testShot", function (data) {
         gpio.write(pinConf.focus, 1, function () {
