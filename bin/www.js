@@ -455,6 +455,9 @@ io.sockets.on('connection', function (socket) {
     });
     //test shot
     socket.on("testShot", function (data) {
+        if (!data.lapseConf.bulbMode) {
+            data.lapseConf.shutterSpeed = 0
+        }
         gpio.write(pinConf.focus, 1, function () {
             focusEvent = setTimeout(function () {
                 //trigger shutter & wait for shutter speed if any
