@@ -31,7 +31,9 @@ sudo adduser $USER gpio
 cd ..
 git clone git://github.com/equilerex/PiLapseRails // our actual project
 cd PiLapseRails/
-npm install
+npm install pi-gpio //pin controlling utility
+cd ..
+cd ..
 cd ..
 sudo nano etc/rc.local
 use arrows to move to the end of the file and type:
