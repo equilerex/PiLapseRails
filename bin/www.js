@@ -43,7 +43,7 @@ var gpio = {
 };
 //normal pin plugin (override dummy)
 if(!windowsDevEnvironment) {
-    var gpio = require("gpio")
+    var gpio = require("pi-gpio")
 }
 
 //***********************************************************
