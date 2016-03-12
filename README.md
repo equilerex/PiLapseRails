@@ -15,7 +15,26 @@ Give examples
 
 ### Installing
 
-A step by step series of examples that tell you have to get a development env running
+- Get a [rasbian](https://www.raspberrypi.org/help/quick-start-guide/) installed on your PI
+
+- open up terminal (the black monitor icon) and enter  the following commands:
+```
+sudo apt-get update //(in case its a fresh rasbian installation)
+
+sudo apt-get install nodejs npm //installs nodejs
+git clone git://github.com/equilerex/quick2wire-gpio-admin-permission-fix // provides permission to use pins
+cd quick2wire-gpio-admin
+make
+sudo make install
+sudo adduser $USER gpio
+cd ..
+npm install pi-gpio //pin controlling utility
+git clone git://github.com/equilerex/PiLapseRails // our actual project
+cd PiLapseRails
+```
+
+
+
 
 Stay what the step will be
 
