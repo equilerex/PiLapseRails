@@ -15,7 +15,39 @@ Give examples
 
 ### Installing
 
-A step by step series of examples that tell you have to get a development env running
+-Get a [rasbian](https://www.raspberrypi.org/help/quick-start-guide/) installed on your PI
+-connect to wifi/ethernet
+-open up terminal (the black monitor icon) and enter  the following commands:
+```
+sudo apt-get update //(in case its a fresh rasbian installation)
+
+sudo apt-get install nodejs npm //installs [nodejs](https://nodejs.org/en/)
+sudo npm install -g express
+git clone git://github.com/equilerex/quick2wire-gpio-admin-permission-fix // provides permission to use pins
+cd quick2wire-gpio-admin-permission-fix/
+make
+sudo make install
+sudo adduser $USER gpio
+cd ..
+git clone git://github.com/equilerex/PiLapseRails // our actual project
+cd PiLapseRails/
+npm install
+cd ..
+sudo nano etc/rc.local
+use arrows to move to the end of the file and type:
+su pi -c 'node /home/pi/PiLapseRails/bin/www.js < /dev/null &'
+ctrl + o
+enter to confirm
+make a tethered hotspot (portable wifi got-spot) on the phone you'll be using
+on pi, connect to that hotspot. if you are at home and used the wifi for setting everything up, you might want to remove that wifi so the pi would always connect to the phone automatically
+reboot
+
+ifconfig
+
+```
+
+
+
 
 Stay what the step will be
 
