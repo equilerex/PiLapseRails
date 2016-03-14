@@ -37,19 +37,25 @@ and since i also had hell of a time trying to piece the whole picture together (
     -connect to wifi/ethernet
     -open up terminal (the black monitor icon) and enter  the following commands:
 1. in case its a fresh rasbian installation, get your os updated with:
+
 ```
 sudo apt-get update //(in case its a fresh rasbian installation)
 ```
 
 1.install nodejs (server side BE language)
+
 ```
 sudo apt-get install nodejs npm
 ```
+
 2. web framework for providing the frontend
+
 ```
 sudo npm install -g express
+
 ```
 3. provides permission to use pins
+
 ```
 git clone git://github.com/equilerex/quick2wire-gpio-admin-permission-fix
 cd quick2wire-gpio-admin-permission-fix/
@@ -58,22 +64,29 @@ sudo make install
 sudo adduser $USER gpio
 cd ..
 ```
+
 4. get our actual project files
+
 ```
 git clone git://github.com/equilerex/PiLapseRails
 ```
+
 5.install gpio pin controller software... including it in the package.json didnt work so have to do it here
+
 ```
 cd PiLapseRails/
 npm install gpio
 ```
+
 6. project setup (downloads all dependencies)
+
 ```
 npm install
 ```
 
 
     - In order to start the app every time you boot raspberry, we need to add it to the startup process:
+
 ```
 cd ..
 cd ..
@@ -84,6 +97,7 @@ su pi -c 'node /home/pi/PiLapseRails/bin/www.js &'
 //hit ctrl + o to save
 //hit enter to confirm name
 ```
+
     - reboot your raspberry
 
 ### Connecting to your mobile
@@ -91,9 +105,11 @@ su pi -c 'node /home/pi/PiLapseRails/bin/www.js &'
     -on pi, connect to that hotspot.
     -If you are at home and used the wifi for setting everything up, you might want to remove that wifi connection so the pi would always connect to the phone automatically
     -in terminal, write:
+
 ```
 ifconfig
 ```
+
     - somewhere around where it says wlan0, find the ip address listed behind "inet addr" mine for example was 192.168.43.80
     - now go on your phone and type what you found in a browser of your choice and add :8080 to the end of it, so in my case, it was 192.168.43.80:8080
     - Youre done! have fun!
