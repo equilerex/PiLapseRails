@@ -1,9 +1,10 @@
 # PiLapseRails
 Web app for controlling DIY raspberry time lapse rails
 
-![screenshot](/samples/screen1.jpg?raw=true "screenshot")
-![screenshot](/samples/screen2.jpg?raw=true "screenshot")
+![screenshot](/samples/screen2.jpg?raw=true "screenshot")   ![screenshot](/samples/screen1.jpg?raw=true "screenshot")
+
 [Hardware](/samples/circuit.jpg)
+
 [shutter schematics](/samples/mosfet.jpg)
 
 When looking into time lapse rails, i ran across I ran across [David Hunt's](http://www.davidhunt.ie/lapse-pi-touch-a-touchscreen-timelapse-controller/) post on building a diy version using raspberry.
