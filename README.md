@@ -33,29 +33,29 @@ and since i also had hell of a time trying to piece the whole picture together (
 
 ### Installing
 
-    -Get a [rasbian](https://www.raspberrypi.org/help/quick-start-guide/) installed on your raspberry
-    -connect to wifi/ethernet
-    -open up terminal (the black monitor icon) and enter  the following commands:
-1. in case its a fresh rasbian installation, get your os updated with:
+* Get a [rasbian](https://www.raspberrypi.org/help/quick-start-guide/) installed on your raspberry
+* connect to wifi/ethernet
+* open up terminal (the black monitor icon) and enter  the following commands:
+* in case its a fresh rasbian installation, get your os updated with:
 
 
 ```
 sudo apt-get update //(in case its a fresh rasbian installation)
 ```
 
-1.install nodejs (server side BE language)
+* install nodejs (server side BE language)
 
 ```
 sudo apt-get install nodejs npm
 ```
 
-2. web framework for providing the frontend
+* web framework for providing the frontend
 
 ```
 sudo npm install -g express
 
 ```
-3. provides permission to use pins
+* provides permission to use pins
 
 ```
 git clone git://github.com/equilerex/quick2wire-gpio-admin-permission-fix
@@ -66,20 +66,20 @@ sudo adduser $USER gpio
 cd ..
 ```
 
-4. get our actual project files
+* get our actual project files
 
 ```
 git clone git://github.com/equilerex/PiLapseRails
 ```
 
-5.install gpio pin controller software... including it in the package.json didnt work so have to do it here
+* install gpio pin controller software... including it in the package.json didnt work so have to do it here
 
 ```
 cd PiLapseRails/
 npm install gpio
 ```
 
-6. project setup (downloads all dependencies)
+* project setup (downloads all dependencies)
 
 ```
 npm install
@@ -115,7 +115,7 @@ ifconfig
 * now go on your phone and type what you found in a browser of your choice and add :8080 to the end of it, so in my case, it was 192.168.43.80:8080
 * Youre done! have fun!
 
-## Author
+### Author
 
 **Joosep Kõivistik** - [homepage](https://koivistik.com) |  [blog](https://blog.koivistik.com)
 
