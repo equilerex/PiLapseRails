@@ -115,13 +115,21 @@ ifconfig
 * now go on your phone and type what you found in a browser of your choice and add :8080 to the end of it, so in my case, it was 192.168.43.80:8080
 * Youre done! have fun!
 
+### Updating
+ ```
+ cd PiLapsRails/
+ git pull
+ *restart your pi*
+ ```
+
 ### Author
 
 **Joosep Kõivistik** - [homepage](https://koivistik.com) |  [blog](https://blog.koivistik.com)
 
 ### Nice to know
-* half of the "wait length" is used before the rail moves, the other after it stops to ensure most stable conditions
-* reset button is there in case the software screws up the saved settings (should be bug free but you never know!)
+* Half of the "wait length" is used before the rail moves, the other after it stops to ensure most stable conditions
+* Reset button is there in case the software screws up the saved settings (should be bug free but you never know!)
+* wifi can ba a bitch since sometimes the pi just doesnt wanna automatically connect to your phone... might be good to look into making raspberry the hotspot/access point instead
 
 
 ## Acknowledgments
