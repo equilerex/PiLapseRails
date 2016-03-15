@@ -87,9 +87,8 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
             "machine":"day"
         }
     };
-    $scope.timeLeftFormat = timeFormats.underHour
-    $scope.intervalFormat =  timeFormats.underHour
-
+    $scope.timeLeftFormat = timeFormats.underHour;
+    $scope.intervalFormat =  timeFormats.underHour;
 
 
     //***********************************************************
@@ -108,7 +107,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         } else {
             return 0
         }
-    }
+    };
     //progress bar
     $scope.loadBar = function() {
         var calculate = ($scope.railStatus.shotsLeft-$scope.railStatus.count)/($scope.railStatus.shotsLeft/100)
@@ -238,17 +237,14 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
             $scope.updateEstimate()
         });
     });
-
     //run the timelapse
     $scope.runTimelapse = function() {
         socket.emit('runTimelapse', {"lapseConf":$scope.lapseConf,"railConf":$scope.railConf, "railStatus":$scope.railStatus});
     };
-
     //cancel timelapse
     $scope.cancelTimelapse = function(source) {
         socket.emit('cancelTimelapse', {"lapseConf":$scope.lapseConf,"railConf":$scope.railConf});
     };
-
     //manual move
     $scope.manualSlide = function(direction, state) {
         socket.emit('manualSlide',{direction:direction, state:!state});
@@ -260,14 +256,12 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         $scope.lapseConf = angular.copy($scope.defaultLapseConf);
         socket.emit('saveSettings',{"file":"lapseconf","data":$scope.defaultLapseConf});
     };
-
     //set current position as new "0"
     $scope.resetCurrentPosition = function() {
         $scope.railStatus.currentPosition = 0;
         socket.emit('resetPosition', $scope.railStatus);
         $scope.showSimpleToast("Position set to 0");
     };
-
     //save settings
     $scope.saveSettings = function(file, data) {
         socket.emit('saveSettings',{"file":file,"data":data});
@@ -276,7 +270,6 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     socket.on('errorOnSave', function (data) {
         $scope.showSimpleToast('Something went wrong while saving settings, better hit "Reset settings" button to ensure nothing is screwed :)');
     });
-
     //confirmation messages
     $scope.showSimpleToast = function(message) {
         $mdToast.show(
@@ -286,16 +279,13 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
                 .hideDelay(4000)
         );
     };
-
     //shut off
     $scope.shutOffPi = function() {
         $scope.poweredOff = true;
         socket.emit('shutOffPi',"shut it!");
     };
-
     //save settings
     $scope.testShot = function() {
         socket.emit('testShot',{"lapseConf":$scope.lapseConf,"railConf":$scope.railConf, "railStatus":$scope.railStatus});
     };
-
 });

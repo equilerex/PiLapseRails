@@ -43,7 +43,7 @@ var gpio = {
 };
 //normal pin plugin (override dummy)
 if(!windowsDevEnvironment) {
-    var gpio = require("pi-gpio")
+    gpio = require("pi-gpio")
 }
 
 //***********************************************************
@@ -73,9 +73,6 @@ app.get('/', function(req, res, next) {
 app.use("/public", express.static(path.join(__dirname, '../public')));
 
 
-
-
-
 //***********************************************************
 // pin configuration (feel free to change) using values from here: https://github.com/rakeshpai/pi-gpio
 //***********************************************************
@@ -85,8 +82,6 @@ var pinConf = {
     "forward": 15,
     "back": 16
 };
-
-
 
 //***********************************************************
 // Status feedback
@@ -136,6 +131,7 @@ fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', functio
     });
 
 });
+
 //***********************************************************
 //open pins for business
 //***********************************************************
@@ -220,7 +216,6 @@ var stopTimelapse = function(lapseConf) {
     railMoved();
     plr.emit("timelapseStatus", railStatus);
 };
-
 
 //***********************************************************
 // Running timelapse logic
@@ -370,9 +365,6 @@ var runManualSlide = function(data) {
         plr.emit("timelapseStatus", railStatus);
     }
 };
-
-
-
 
 //***********************************************************
 // Socket.io Congfig
