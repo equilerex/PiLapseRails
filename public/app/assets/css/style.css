@@ -86,6 +86,6 @@ md-toast {
   min-height: 900px; }
 
 .md-sidenav-backdrop {
-  position: fixed; }
+  min-height: 900px; }
 
 /*# sourceMappingURL=style.css.map */
