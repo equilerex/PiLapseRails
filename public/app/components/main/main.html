@@ -1,58 +1,233 @@
+<md-toolbar flex >
+    <div class="md-toolbar-tools black_background" layout="row" layout-align="space-between center">
+       <img src="public/app/assets/img/logo.png" height="30"/>
+        <md-button class="md-icon-button md-primary menu_button" aria-label="Menu" ng-click="openMenu(); main.toggle();" ng-if="!poweredOff && !disconnected" >
+            <ng-md-icon icon="menu"></ng-md-icon>
+        </md-button>
+    </div>
+</md-toolbar>
+<md-sidenav class="md-sidenav-left" md-component-id="left"  ng-if="!poweredOff && !disconnected">
+    <div class="side_nav_inside">
+        <md-toolbar class="black_background">
+            <h1 class="md-toolbar-tools">
+                <i class="material-icons icon">build</i> SETTINGS </h1>
+        </md-toolbar>
+            <div layout="column" layout-padding="10">
+                <md-input-container class="md-block">
+                    <label>Rail length</label>
+                    <input ng-model="railConf.railLength"
+                           ng-change="saveSettings('railconf', railConf);updateEstimate()"
+                           type="number"
+                           required="true">
+                </md-input-container>
+                <md-switch ng-model="railConf.focusEnabled"
+                           ng-change="saveSettings('railconf', railConf);updateEstimate()"
+                           aria-label="focusEnabled" >
+                    Enable focusing
+                </md-switch>
+                <md-switch ng-model="railConf.rememberPosition"
+                           ng-change="saveSettings('railconf', railConf);updateEstimate()"
+                           aria-label="rememberPosition" >
+                    Remember position on boot
+                </md-switch>
+                <md-switch ng-model="railConf.flipDirection"
+                           ng-change="saveSettings('railconf', railConf);updateEstimate()"
+                           aria-label="rememberPosition" >
+                Flip back/forward
+                </md-switch>
 
-<!DOCTYPE html>
-<html ng-app="ngapp">
+            </div>
 
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="Content-Security-Policy">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="msapplication-tap-highlight" content="no">
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+            <div layout="row">
+                <div flex layout-padding="10" >
+                    <md-button class="md-raised md-primary width_100 no_margin no_padding"
+                               type="button"
+                               ng-click="resetConf()">Reset Settings</md-button>
+                </div>
+            </div>
+        <md-toolbar class="black_background">
+            <h2 class="md-toolbar-tools">
+                <i class="material-icons icon">compare_arrows</i>manual control
+            </h2>
+        </md-toolbar>
+        <div layout="column" layout-padding="10">
+            <div layout="column">
 
-    <link rel="stylesheet" type="text/css" href="assets/css/index.css">
-    <link rel="stylesheet" type="text/css" href="assets/css/angular-material.css">
-    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="assets/css/angular-material-icons.css">
-    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+                <div flex="50" layout-align="center">
+                    <md-switch ng-model="railStatus.forward"
+                               ng-click="manualSlide('forward', railStatus.forward)"
+                               aria-label="Switch_forw"
+                               ng-true-value="true"
+                               ng-false-value="false"
+                               ng-disabled="railStatus.back || !railStatus.back && !railStatus.forward && railStatus.lapseInProgress">
+                        Move forward
+                    </md-switch>
+                    <md-switch flex="50" ng-model="railStatus.back"
+                               ng-click="manualSlide('back', railStatus.back)"
+                               aria-label="Switch_back"
+                               ng-disabled="railStatus.forward ||  !railStatus.back && !railStatus.forward && railStatus.lapseInProgress">
+                        Move Backward
+                    </md-switch>
+                </div>
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,500,500italic,700,700italic">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700">
+                <md-input-container class="md-block">
+                    <label>current position</label>
+                    <input ng-model="railStatus.currentPosition"
+                           disabled="true"
+                           type="number">
+                </md-input-container>
+
+                <md-button class="md-raised md-primary width_100 md-block no_margin"
+                           type="button"
+                           ng-disabled="railStatus.lapseInProgress"
+                           ng-click="resetCurrentPosition(); updateEstimate()">
+                    Set as new 0 position
+                </md-button>
+            </div>
+        </div>
+        <md-toolbar class="black_background">
+            <h2 class="md-toolbar-tools">
+                <i class="material-icons icon">settings</i>Raspberry
+            </h2>
+        </md-toolbar>
+        <div layout="column" layout-padding="10">
+            <div layout="column">
+                <md-button class="md-raised md-primary width_100 md-block no_margin"
+                           type="button"
+                           ng-disabled="railStatus.lapseInProgress"
+                           ng-click="shutOffPi(); ">
+                    Shut off Raspberry
+                </md-button>
+            </div>
+        </div>
+        <a href="http://koivistik.com?src=pilapserails" class="author">PiLapseRails © Koivistik.com</a>
+    </div>
+</md-sidenav>
+<div layout="row" layout-align="center"  ng-if="!poweredOff && !disconnected">
+
+    <div flex="33" layout-align="center" class="main_counter">
+        <label>Shots</label>
+        <h1>{{railStatus.count}} / {{railStatus.shotsLeft}}</h1>
+    </div>
+    <div flex="33" layout-align="center" class="main_counter time_counter">
+        <label>Time Left</label>
+        <label class="sub_label">{{timeLeftFormat}}</label>
+        <h1>{{railStatus.timeLeft}}</h1>
+    </div>
+    <div flex="33" layout-align="center" class="main_counter time_counter">
+        <label>Interval</label>
+        <label class="sub_label">{{intervalFormat}}</label>
+        <h1>{{railStatus.interval}}</h1>
+    </div>
+</div>
+<div layout="column" layout-padding="10" ng-if="!poweredOff && !disconnected">
+    <div layout="row" ng-if="!railConf.railLength && connectionEstablished" class="text-center">
+        <h2>Please configure the length of your rails in the settings menu</h2>
+    </div>
+    <form ng-submit="runTimelapse()" ng-if="!railStatus.lapseInProgress && railConf.railLength">
+        <div layout="column" ng-if="railConf.focusEnabled">
+            <div flex>
+                <md-input-container class="md-block" layout-align="right">
+                    <label>Focus</label>
+                    <input ng-model="lapseConf.focusLength"
+                           type="number"
+                           ng-change="updateEstimate()"
+                           required="true">
+                </md-input-container>
+            </div>
+        </div>
+        <div layout="row">
+            <div flex>
+                <md-switch ng-model="lapseConf.bulbMode" aria-label="Switch_bulb" ng-change="updateEstimate()">
+                    Bulb Mode
+                </md-switch>
+            </div>
+            <div flex>
+                <md-input-container class="md-block no_bottom_margin" flex-gt-sm ng-if="lapseConf.bulbMode">
+                    <label>Shutter Speed</label>
+                    <input ng-model="lapseConf.shutterSpeed"
+                           type="number"
+                           ng-change="updateEstimate()"
+                           required="true">
+                </md-input-container>
+            </div>
+        </div>
+        <div layout="row">
+            <div flex="50">
+                <md-input-container class="md-block no_bottom_margin" layout-align="right">
+                    <label>Motor </label>
+                    <input ng-model="lapseConf.motorPulse"
+                           type="number"
+                           ng-change="updateEstimate()"
+                           required="true">
+                </md-input-container>
+            </div>
+            <div  flex="50">
+                <md-input-container class="md-block " layout-align="right">
+                    <label>Wait</label>
+                    <input ng-model="lapseConf.waitLength"
+                           type="number"
+                           ng-change="updateEstimate()"
+                           required="true">
+                </md-input-container>
+            </div>
+        </div>
+        <div layout="row" layout-align="center" class="no_bottom_margin " >
+            <div flex>
+                <md-switch ng-model="lapseConf.loopEnabled"
+                           ng-change="updateEstimate()"
+                           aria-label="Switch_dir">
+                    Loop
+                </md-switch>
+            </div>
+            <div flex  ng-if="lapseConf.loopEnabled">
+                <md-input-container class="md-block no_bottom_margin" layout-align="right">
+                    <label>Times</label>
+                    <input ng-model="lapseConf.loopCount"
+                           type="number"
+                           ng-change="updateEstimate()"
+                           required="true">
+                </md-input-container>
+            </div>
+        </div>
+        <div layout="row" layout-align="center" class="">
+            <div flex>
+                <md-switch ng-model="lapseConf.direction"
+                           aria-label="Switch_dir"
+                           ng-change="updateEstimate()">
+                    {{lapseConf.direction === true?"Forward":"Backward"}}
+                </md-switch>
+            </div>
+        </div>
+        <div layout="row" layout-align="center">
+            <md-button class="md-raised md-primary width_100 md-block" type="submit" ng-disabled="shotsLeft() === 0"><span
+                    ng-if="!endOfRails()">Start Timelapse</span><span ng-if="endOfRails()">change direction!</span>
+            </md-button>
+        </div>
+        <div layout="row" layout-align="center" ng-if="!railStatus.lapseInProgress">
+            <md-button class="md-raised md-primary width_100 md-block" type="button" ng-click="testShot()">
+                Test shot
+            </md-button>
+        </div>
+    </form>
+    <div ng-if="railStatus.lapseInProgress">
+        <div layout="row" layout-align="center">
+            <md-progress-linear md-mode="determinate" value="{{loadBar()}}"></md-progress-linear>
+        </div>
+        <div layout="row" layout-align="center">
+            <md-button class="md-raised md-primary width_100 md-block" type="button" ng-click="cancelTimelapse()">Stop</md-button>
+        </div>
+    </div>
+</div>
+
+<div layout="row" ng-if="poweredOff" class="text-center">
+    <h2>Safe to power off your raspberry in a few moments...</h2>
+</div>
+
+<div layout="row" ng-if="!poweredOff && disconnected" class="text-center">
+    <h2>Connection with raspberry lost! Get closer, make sure it is working properly and refresh the browser</h2>
+</div>
 
 
-    <!-- AngularJs -->
-    <script type="text/javascript" src="assets/lib/angular.min.js"></script>
-    <script type="text/javascript" src="assets/lib/angular-ui-router.min.js"></script>
-    <script type="text/javascript" src="assets/lib/angular-aria.min.js"></script>
-    <script type="text/javascript" src="assets/lib/angular-animate.min.js"></script>
-    <script type="text/javascript" src="assets/lib/ngStorage.min.js"></script>
-    <script type="text/javascript" src="assets/lib/ngTouch.min.js"></script>
 
 
-    <!-- Angular Material -->
-    <script type="text/javascript" src="assets/lib/angular-material-icons.js"></script>
-    <script type="text/javascript" src="assets/lib/angular-material.js"></script>
-
-    <!-- Modules -->
-    <script type="text/javascript" src="app.js"></script>
-    <script type="text/javascript" src="assets/lib/moment.min.js"></script>
-
-    <!-- Routes -->
-    <script type="text/javascript" src="routes.js"></script>
-
-    <!-- Services -->
-    <script type="text/javascript" src="shared/shared-service.js"></script>
-
-    <!-- Controllers -->
-    <script type="text/javascript" src="components/main/main-controller.js"></script>
-    <!-- <script src="http://192.168.43.80:8080/vendor/socket.js"> </script>-->
-    <script src="vendor/jquery.min.js"> </script>
-
-    <title>NgApp</title>
-</head>
-
-<body ng-cloak>
-
-<ui-view></ui-view>
-
-</body>
-</html>

@@ -82,4 +82,10 @@ md-toast {
   display: block;
   text-decoration: none; }
 
+.md-sidenav-left, md-sidenav {
+  min-height: 900px; }
+
+.md-sidenav-backdrop {
+  position: fixed; }
+
 /*# sourceMappingURL=style.css.map */

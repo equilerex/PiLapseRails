@@ -89,6 +89,11 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
     $scope.timeLeftFormat = timeFormats.underHour;
     $scope.intervalFormat =  timeFormats.underHour;
+    $scope.connection = {
+        disconnected:false,
+        poweredOff:false,
+        connectionEstablished:false
+    };
 
 
     //***********************************************************
@@ -201,17 +206,26 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     var url = window.location.href ;
     var arr = url.split("/");
     var absoluteUrl = arr[0] + "//" + arr[2];
-    if(windowsDevEnvironment){
-        socket = io.connect(absoluteUrl);
-    } else {
-        socket = io.connect(absoluteUrl);
-    }
+    socket = io.connect(absoluteUrl);
+    socket.on("connect_error", function () {
+        console.log("errr")
+        $scope.disconnected = true;
+        $scope.$apply();
+    });
     //device has been connected event
     socket.on('connect', function(data){
         socket.emit('pageLoaded');
+        $scope.disconnected = false;
+        $scope.$apply();
+    });
+    socket.on("disconnect", function () {
+        $scope.disconnected = true;
+        $scope.$apply();
+        console.log("disconnectd")
     });
     //fetch saved data upon loading
     socket.on('connectionEstablished', function(data){
+        $scope.connectionEstablished = true;
         //use saved data
         $scope.$apply(function() {
             if (data.railConf) {
