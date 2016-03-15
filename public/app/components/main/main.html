@@ -1,13 +1,16 @@
-<md-toolbar flex >
+<md-toolbar flex md-swipe-left="$scope.main.toggle()" md-swipe-right="$scope.main.toggle()">
     <div class="md-toolbar-tools black_background" layout="row" layout-align="space-between center">
        <img src="public/app/assets/img/logo.png" height="30"/>
-        <md-button class="md-icon-button md-primary menu_button" aria-label="Menu" ng-click="openMenu(); main.toggle();" ng-if="!poweredOff && !disconnected" >
+        <md-button class="md-icon-button md-primary menu_button" aria-label="Menu" ng-click="openMenu(); main.toggle();" >
             <ng-md-icon icon="menu"></ng-md-icon>
         </md-button>
     </div>
 </md-toolbar>
-<md-sidenav class="md-sidenav-left" md-component-id="left"  ng-if="!poweredOff && !disconnected">
-    <div class="side_nav_inside">
+<md-sidenav class="md-sidenav-left" md-component-id="left" >
+    <md-toolbar class="black_background" ng-if="poweredOff || disconnected">
+        <h1 class="md-toolbar-tools"> Noooope </h1>
+    </md-toolbar>
+    <div class="side_nav_inside"  ng-if="!poweredOff && !disconnected">
         <md-toolbar class="black_background">
             <h1 class="md-toolbar-tools">
                 <i class="material-icons icon">build</i> SETTINGS </h1>

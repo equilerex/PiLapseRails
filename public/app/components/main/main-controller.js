@@ -208,24 +208,24 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     var absoluteUrl = arr[0] + "//" + arr[2];
     socket = io.connect(absoluteUrl);
     socket.on("connect_error", function () {
-        console.log("errr")
-        $scope.disconnected = true;
-        $scope.$apply();
+        $scope.$apply(function() {
+            $scope.disconnected = true;
+        });
     });
     //device has been connected event
     socket.on('connect', function(data){
         socket.emit('pageLoaded');
-        $scope.disconnected = false;
-        $scope.$apply();
+        $scope.$apply(function() {
+            $scope.disconnected = false;
+        });
     });
     socket.on("disconnect", function () {
-        $scope.disconnected = true;
-        $scope.$apply();
-        console.log("disconnectd")
+        $scope.$apply(function() {
+            $scope.disconnected = true;
+        });
     });
     //fetch saved data upon loading
     socket.on('connectionEstablished', function(data){
-        $scope.connectionEstablished = true;
         //use saved data
         $scope.$apply(function() {
             if (data.railConf) {
@@ -241,8 +241,11 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
                 $scope.lapseConf = $scope.defaultLapseConf
             }
             $timeout(function(){$scope.updateEstimate()},300)
+            $scope.connectionEstablished = true;
         });
-
+        $scope.$apply(function() {
+            $scope.disconnected = false;
+        });
     });
     //active timelapse feedback info
     socket.on('timelapseStatus', function (data) {
