@@ -89,11 +89,6 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
     $scope.timeLeftFormat = timeFormats.underHour;
     $scope.intervalFormat =  timeFormats.underHour;
-    $scope.connection = {
-        disconnected:false,
-        poweredOff:false,
-        connectionEstablished:false
-    };
 
 
     //***********************************************************
