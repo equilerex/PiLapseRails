@@ -124,7 +124,7 @@ fs.readFile(path.join(__dirname, '../public/app/railconf.json'), 'utf8', functio
                 railStatus.currentPosition = serverRailConf.savedPosition
             }
             //if position should be remembered on boot, restore it.
-            if(serverRailConf.flipDirection) {
+            if(serverRailConf.flipDirection ) {
                 flipDirection()
             }
         };
@@ -350,8 +350,8 @@ var runManualSlide = function(data) {
     //clear states
     gpio.write(pinConf.forward, 0, function () {});
     gpio.write(pinConf.back, 0, function () {});
-    //start motor if needed
-    railStatus[data.direction] = data.state
+    //start or stop motor
+    railStatus[data.direction] = data.state;
     if (data.state) {
         railStatus.lapseInProgress = true;
         gpio.write(pinConf[data.direction], 1, function () {});
@@ -401,22 +401,18 @@ io.sockets.on('connection', function (socket) {
 
     });
 
-    //saving shot settings call
     socket.on("saveSettings", function (data) {
         if(data.file === "railconf") {
-            //store old values for comparing
-            var previousRememberPosition = data.data.rememberPosition;
-            var previousFlipDirection = data.data.rememberPosition;
-            //set new data
-            serverRailConf = data.data;
             //in remember enabled, save status right away
-            if(data.data.rememberPosition && !previousRememberPosition) {
+            if(data.data.rememberPosition && serverRailConf.rememberPosition === false) {
                 railMoved()
             }
             //flip motor pins
-            if(data.data.flipDirection && !previousFlipDirection) {
+            if(serverRailConf.flipDirection !== data.data.flipDirection) {
                 flipDirection()
             }
+            //set new data
+            serverRailConf = data.data;
         }
         //store settings locally for the next restart
         fs.writeFile(path.join(__dirname, '../public/app/'+data.file+'.json'), JSON.stringify(data.data), "utf8", function (err) {
