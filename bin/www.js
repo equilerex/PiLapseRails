@@ -173,7 +173,6 @@ openPins();
 var railMoved = function() {
     if(serverRailConf.rememberPosition) {
         serverRailConf.savedPosition = railStatus.currentPosition;
-        console.log(serverRailConf.savedPosition)
         fs.writeFile(path.join(__dirname, '../public/app/railconf.json'), JSON.stringify(serverRailConf), "utf8", function (err) {
             if(err) {
                 plr.emit("errorOnSave");
@@ -246,8 +245,10 @@ var runTimeLapse = function(data) {
     };
     selectMotorPin();
 
-    //save new settings locally
+    //store new settings locally in case of restart
     fs.writeFile(path.join(__dirname, '../public/app/lapseconf.json'), JSON.stringify(data.lapseConf), "utf8", function (err) {
+        //save new settings server side
+        serverLapseConf = data.lapseConf;
         if(err) {
             plr.emit("errorOnSave");
         }
@@ -417,7 +418,14 @@ io.sockets.on('connection', function (socket) {
                 flipDirection()
             }
         }
+        //store settings locally for the next restart
         fs.writeFile(path.join(__dirname, '../public/app/'+data.file+'.json'), JSON.stringify(data.data), "utf8", function (err) {
+            //save new settings on the server
+            if(data.file === "railconf") {
+                serverRailConf =  data.data;
+            } else if(data.file === "lapseconf") {
+                serverLapseConf = data.data;
+            }
             if(err) {
                 plr.emit("errorOnSave");
             }

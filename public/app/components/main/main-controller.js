@@ -56,7 +56,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
         "bulbMode":false,
         "shutterSpeed":1000,
         "focusLength":0,
-        "motorPulse":1000,
+        "motorPulse":2000,
         "waitLength":1000,
         "direction":true, //backward
         "loopEnabled":false,
@@ -221,19 +221,24 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     });
     //fetch saved data upon loading
     socket.on('connectionEstablished', function(data){
+        console.log(data)
         //use saved data
         $scope.$apply(function() {
             if (data.railConf) {
-                $scope.railConf = data.railConf
+                console.log(1)
+                $scope.railConf = data.railConf;
                 //use default
             } else {
-                $scope.railConf = $scope.defaultRailConf
+                console.log(2)
+                $scope.railConf = $scope.defaultRailConf;
             }
             if (data.lapseConf) {
-                $scope.lapseConf = data.lapseConf
+                console.log(3)
+                $scope.lapseConf = data.lapseConf;
                 //use default
             } else {
-                $scope.lapseConf = $scope.defaultLapseConf
+                console.log(4)
+                $scope.lapseConf = $scope.defaultLapseConf;
             }
             $timeout(function(){$scope.updateEstimate()},300)
             $scope.connectionEstablished = true;
@@ -293,7 +298,7 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     };
     //shut off
     $scope.shutOffPi = function() {
-        $scope.main.toggle()
+        $scope.main.toggle();
         $scope.poweredOff = true;
         socket.emit('shutOffPi',"shut it!");
     };
@@ -301,4 +306,18 @@ angular.module("ngapp").controller("MainController", function(shared, $state, $s
     $scope.testShot = function() {
         socket.emit('testShot',{"lapseConf":$scope.lapseConf,"railConf":$scope.railConf, "railStatus":$scope.railStatus});
     };
+})
+.directive("loseFocus", function() {
+    return {
+        restrict: 'A',
+        link: function($scope,elem,attrs) {
+            elem.bind('keydown', function(e) {
+                var code = e.keyCode || e.which;
+                if (code === 13) {
+                    e.preventDefault();
+                    elem.blur();
+                }
+            });
+        }
+    }
 });
