@@ -7,17 +7,15 @@ Web app for controlling DIY raspberry time lapse rails
 
 [shutter schematics](/samples/mosfet.jpg)
 
-When looking into time lapse rails, i ran across I ran across [David Hunt's](http://www.davidhunt.ie/lapse-pi-touch-a-touchscreen-timelapse-controller/) post on building a diy version using raspberry.
-the article was quite nice with a lot of information on the hardware... i however did not want to buy an extra touch screen and running it through command line sounded pretty insane so i went on to a quest to do something about it :)
-A couple of evenings later, there is a solution :) ive put together a little web app that runs on a nodeJS server on the PI which can then be accessed on your mobile device if it is sharing its wifi with the raspberry.
+When looking into time lapse rails, i ran across I ran across [David Hunt's](http://www.davidhunt.ie/lapse-pi-touch-a-touchscreen-timelapse-controller/) post on building a diy version using raspberry Pi.
+The article was quite nice with a lot of information on the hardware... i however did not want to buy an extra touch screen and running it through command line sounded pretty insane so i went on to a quest to do something about it :)
+A couple of evenings later, there was a solution :) i've put together a little web app that runs on a nodeJS server on the PI which can then be accessed on your mobile device if it is sharing its wifi with the raspberry.
 The connection between the web app (on the phone) and the server(on the pi) is done through websockets so its more or less real time which makes it fast and responsive.
 The runtime logic is on the nodejs side so if you walk away or close the browser, the time lapse will keep on running and you just need to open the app again to regain control/feedback.
 
-and since i also had hell of a time trying to piece the whole picture together (there information on david's post but you had to figure out a lot of things on your own) then i figured that i'd create a dumbed down guide on the hardware as well which someone with barely any knowledge on the subject should be able to follow:
-*  link to blog (in progress)
-
-
-
+And since i also had hell of a time trying to piece the whole picture together (there information on david's post but you had to figure a lot of things out on your own) then i figured that i'd create a dumb down guide on the hardware as well which someone with barely any knowledge on the subject should be able to follow:
+[http://blog.koivistik.com/pilapserails-raspberrypi-time-lapse-rails/](http://blog.koivistik.com/pilapserails-raspberrypi-time-lapse-rails/)
+ 
 
 ### Features
 * Remembers settings across sessions
