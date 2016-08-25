@@ -70,11 +70,11 @@ cd ..
 git clone git://github.com/equilerex/PiLapseRails
 ```
 
-* install gpio pin controller software... including it in the package.json didnt work so have to do it here
+* install pi-gpio pin controller software... including it in the package.json didnt work so have to do it here
 
 ```
 cd PiLapseRails/
-npm install gpio
+npm install pi-gpio
 ```
 
 * project setup (downloads all dependencies)
