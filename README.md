@@ -111,7 +111,7 @@ ifconfig
 
 * somewhere around where it says wlan0, find the ip address listed behind "inet addr" mine for example was 192.168.43.80
 * now go on your phone and type what you found in a browser of your choice and add :8080 to the end of it, so in my case, it was 192.168.43.80:8080
-* Youre done! have fun!
+* You're done! have fun!
 
 ### Updating
  ```
