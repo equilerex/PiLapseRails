@@ -122,7 +122,7 @@ ifconfig
 
 ### Author
 
-**Joosep Kõivistik** - [homepage](https://koivistik.com) |  [blog](https://blog.koivistik.com)
+**Joosep Kõivistik** - [homepage](http://koivistik.com) |  [blog](http://blog.koivistik.com)
 
 ### Nice to know
 * Half of the "wait length" is used before the rail moves, the other after it stops to ensure most stable conditions
